@@ -12,9 +12,9 @@ fg = np.array(Image.open(base + '-fg.webp').convert('RGBA'))
 sky = fg[..., 3] < 20
 px = plate[sky]
 lum = px.mean(1)
-hi = px[lum >= np.percentile(lum, 88)].mean(0) * 1.18   # cara iluminada
+hi = px[lum >= np.percentile(lum, 88)].mean(0) * 0.7 + np.array([255, 246, 232]) * 0.3   # cara iluminada
 mid = px[(lum > np.percentile(lum, 40)) & (lum < np.percentile(lum, 60))].mean(0)
-lo = px[lum <= np.percentile(lum, 15)].mean(0) * 0.74   # panza en sombra
+lo = px[lum <= np.percentile(lum, 15)].mean(0) * 0.62   # panza en sombra
 FW, FH, N = 640, 240, 6
 yy, xx = np.mgrid[0:FH, 0:FW].astype(np.float32)
 def fbm(oct=5):
@@ -47,7 +47,7 @@ for k in range(N):
     tone = 1 - v
     col = np.where(tone[..., None] > 0.5, mid + (hi - mid) * ((tone[..., None] - 0.5) * 2), lo + (mid - lo) * (tone[..., None] * 2))
     col *= (0.96 + 0.08 * gaussian_filter(rng.random((FH, FW)), 1.0))[..., None]
-    a = np.clip(d * 1.1, 0, 0.85) ** 1.15
+    a = np.clip(d * 1.7, 0, 0.95) ** 0.9
     frames.append(np.dstack([np.clip(col, 0, 255), a * 255]).astype(np.uint8))
 Image.fromarray(np.concatenate(frames, 1), 'RGBA').save(base + '-clouds.webp', quality=88)
 print(base, 'nubes', N)

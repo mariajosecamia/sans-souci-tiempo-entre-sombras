@@ -573,9 +573,9 @@ export class WorldScene extends Phaser.Scene {
         for (let i = 0; i < n; i++) {
           const far = i % 3; // 0 = lejos (arriba), 2 = cerca (más abajo)
           const y = 30 + far * 55 + Math.random() * 40;
-          const scl = 0.55 + far * 0.25 + Math.random() * 0.2;
+          const scl = 0.7 + far * 0.3 + Math.random() * 0.25;
           const cl = this.add.image((i / n) * W + Math.random() * 180, y, pk + '-clouds', Math.floor(Math.random() * 6))
-            .setDepth(-19.6 + far * 0.03).setScale(scl, scl * (0.85 + Math.random() * 0.3)).setAlpha(0.82 + far * 0.07).setFlipX(Math.random() < 0.5);
+            .setDepth(-19.6 + far * 0.03).setScale(scl, scl * (0.85 + Math.random() * 0.3)).setAlpha(0.85 + far * 0.05).setFlipX(Math.random() < 0.5);
           if (!this.opts.reduceMotion) this.clouds.push({ spr: cl, speed: 12 + far * 12 + Math.random() * 6 });
           this.layerObjs.push(cl);
         }
