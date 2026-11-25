@@ -90,4 +90,14 @@ PAINTED.infantil = {
   sombras: { src: 'art/infantil-sombras.webp', tint: 0xd8d4cc, inPaint: { teatro: { x: 0, y: 0 } }, fx: [...candles([[846, 300]])] },
 };
 
+PAINTED.sotano = {
+  '1920': { src: 'art/sotano-1920.webp', tint: 0xe2bf98, fx: [{ k: 'fire', x: 505, y: 462, w: 105, h: 65 }, { k: 'lamp', x: 910, y: 150, r: 150 }, ...candles([[158, 95], [178, 88]])] },
+  abandono: { src: 'art/sotano-abandono.webp', tint: 0xb9b6a2 },
+  sombras: { src: 'art/sotano-sombras.webp', tint: 0xd8d4cc },
+};
+
+PAINTED.reloj = {
+  sombras: { src: 'art/reloj-sombras.webp', tint: 0xd8d4cc, inPaint: { sombra: { x: 0, y: 0 } }, fx: [{ k: 'plants', x: 300, y: 0, w: 170, h: 290 }] },
+};
+
 export const plateKey = (room: string, era: Era) => `plate-${room}-${era}`;

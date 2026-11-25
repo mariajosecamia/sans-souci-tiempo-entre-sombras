@@ -458,7 +458,7 @@ export class WorldScene extends Phaser.Scene {
           this.props.push(img);
         }
       }
-      if (h.npc) {
+      if (h.npc && !inPaint) {
         const [x, y, w, hh] = h.rect;
         const key = h.npc === 'rosa_ink' ? 'rosa' : h.npc;
         if (key === 'sombra') {
@@ -714,7 +714,7 @@ export class WorldScene extends Phaser.Scene {
       }
       case 'void_intro': this.cameras.main.flash(900, 243, 239, 230); audio.sfx('crow'); await this.delay(700); break;
       case 'free_rosa': {
-        const g = this.add.image(355, 520, 'glow').setBlendMode(Phaser.BlendModes.ADD).setDepth(9150).setScale(0.3).setTint(0xd8f0c0);
+        const g = this.add.image(460, 500, 'glow').setBlendMode(Phaser.BlendModes.ADD).setDepth(9150).setScale(0.3).setTint(0xd8f0c0);
         this.temp.push(g);
         this.tweens.add({ targets: g, scale: 3, alpha: 0, duration: 1400 });
         this.cameras.main.flash(600, 230, 240, 210);
@@ -729,6 +729,12 @@ export class WorldScene extends Phaser.Scene {
         audio.sfx('crow');
         const sp = this.npcs.find((n) => n.texture.key === 'sombra');
         if (sp) this.tweens.add({ targets: sp, scale: sp.scale * 1.25, duration: 900, yoyo: true });
+        else {
+          // la Sombra está pintada en la lámina: se oscurece y se hincha detrás del reloj
+          const d = this.add.image(1300, 330, 'glow').setBlendMode(Phaser.BlendModes.MULTIPLY).setTint(0x2a2622).setDepth(9160).setScale(1.2).setAlpha(0);
+          this.temp.push(d);
+          this.tweens.add({ targets: d, alpha: 0.9, scale: 2.6, duration: 900, yoyo: true });
+        }
         await this.delay(900);
         break;
       }

@@ -336,7 +336,7 @@ export const ROOMS: Record<string, RoomDef> = {
       {
         id: 'chimenea', name: 'Chimenea', rect: [400, 255, 430, 295], walk: [620, 650],
         look: (s) => [say(flag(s, 'panelOpen') ? 'El fondo de la chimenea se corrió. Detrás, una escalera de piedra baja hacia el sótano.' : 'Una chimenea de piedra clara, con el fuego encendido. El fondo de hierro, detrás de las llamas, tiene un relieve de engranajes.')],
-        exit: { to: 'sotano', at: [260, 640], when: (s) => flag(s, 'panelOpen'), locked: [say('Es una chimenea. No pienso meterme.')] },
+        exit: { to: 'sotano', at: [345, 672], when: (s) => flag(s, 'panelOpen'), locked: [say('Es una chimenea. No pienso meterme.')] },
       },
       {
         id: 'fosforos', name: 'Fósforos', rect: [765, 232, 42, 30], walk: [760, 650], 
@@ -596,10 +596,11 @@ export const ROOMS: Record<string, RoomDef> = {
 
   // =========================================================== SÓTANO
   sotano: {
-    id: 'sotano', name: 'Sótano', width: 1600, ambience: 'basement',
-    floor: [[60, 560], [1540, 560], [1570, 708], [30, 708]],
-    scale: [560, 0.86, 708, 0.86],
-    spawn: [260, 640],
+    id: 'sotano', name: 'Sótano', width: 1583, ambience: 'basement',
+    // Coordenadas sobre la ilustración pintada (public/art/sotano-*.webp, 1583×720).
+    floor: [[335, 612], [1555, 600], [1583, 716], [285, 716], [300, 660]],
+    scale: [600, 0.98, 716, 0.98],
+    spawn: [345, 672],
     fracture: quinqueLit,
     onEnter: (s) => (flag(s, 'sotanoSeen') ? [] : [
       { t: 'flag', k: 'sotanoSeen' },
@@ -607,21 +608,21 @@ export const ROOMS: Record<string, RoomDef> = {
     ]),
     hotspots: [
       {
-        id: 'escalera', name: 'Subir al salón', rect: [40, 200, 200, 330], walk: [200, 630],
+        id: 'escalera', name: 'Subir al salón', rect: [0, 20, 300, 620], walk: [330, 668],
         exit: { to: 'salon', at: [620, 655] },
       },
       {
-        id: 'caldera', name: 'Caldera', rect: [370, 230, 240, 300], walk: [490, 640],
-        look: (s) => [say(byEra(s, 'Una caldera de hierro, fría. De ella salen caños que no van hacia arriba sino hacia la pared del fondo.', 'La caldera se partió. Los caños siguen hacia la pared, cubiertos de óxido.'))],
+        id: 'caldera', name: 'Caldera', rect: [320, 90, 330, 510], walk: [500, 665],
+        look: (s) => [say(byEra(s, 'Una caldera de hierro con el fuego bajo. De ella salen caños que no van hacia arriba sino hacia la pared del fondo.', 'La caldera se partió. Los caños siguen hacia la pared, cubiertos de óxido.'))],
       },
       {
-        id: 'cajas', name: 'Cajas selladas', rect: [680, 420, 200, 130], walk: [780, 640],
+        id: 'cajas', name: 'Cajas selladas', rect: [655, 270, 420, 330], walk: [860, 660],
         look: (s) => [say(byEra(s, 'Cajas de madera con sellos de lacre: "L. VERHAEGEN — LIÈGE — FRAGILE".', 'Las cajas se pudrieron. Entre las astillas hay resortes y ruedas dentadas oxidadas.'))],
       },
-      fragment('sotano', [760, 380, 50, 50], '1920', 'frag_sotano'),
+      fragment('sotano', [1000, 545, 50, 50], '1920', 'frag_sotano'),
       {
-        id: 'archivo', name: 'Armario del archivo', rect: [990, 210, 210, 320], walk: [1090, 630], prop: 'archivo',
-        look: (s) => [say(flag(s, 'archivoOpen') ? 'El archivo, abierto. Cajas de cartas, facturas, recibos de Lieja.' : byEra(s, 'Un armario de hierro con cajones rotulados por año. Cerrado con un candado.', 'El armario está oxidado y abierto; adentro, el papel se volvió pasta.'))],
+        id: 'archivo', name: 'Armario del archivo', rect: [1070, 170, 295, 425], walk: [1215, 650], prop: 'archivo',
+        look: (s) => [say(flag(s, 'archivoOpen') ? 'El archivo, abierto. Cajas de cartas, facturas, recibos de Lieja.' : byEra(s, 'Un armario de roble con cajones rotulados por año. Cerrado con un candado.', 'El armario está podrido y abierto; adentro, el papel se volvió pasta.'))],
         use: (s) => {
           if (s.era !== '1920') return [say('Acá ya no queda nada legible.')];
           if (flag(s, 'archivoOpen')) return [say('Ya encontré lo que mamá dejó.')];
@@ -633,14 +634,14 @@ export const ROOMS: Record<string, RoomDef> = {
         },
       },
       {
-        id: 'agua', name: 'Agua estancada', rect: [1240, 540, 320, 110], walk: [1290, 640], eras: ['abandono'], prop: 'reflejo',
+        id: 'agua', name: 'Agua estancada', rect: [1120, 600, 440, 100], walk: [1090, 668], eras: ['abandono'], prop: 'reflejo',
         look: [say('El sótano está inundado hasta los tobillos. En el agua quieta se refleja una puerta que no está en la pared.')],
         use: (s) => has(s, 'engranaje') || flag(s, 'enteredVoid')
-          ? [{ t: 'anim', anim: 'use' }, { t: 'sfx', id: 'whoosh' }, { t: 'goto', room: 'reloj', at: [260, 640], era: 'sombras' }]
+          ? [{ t: 'anim', anim: 'use' }, { t: 'sfx', id: 'whoosh' }, { t: 'goto', room: 'reloj', at: [300, 688], era: 'sombras' }]
           : [say('Meto la mano en el reflejo. Está helado y sólo es agua. Todavía no sé qué hay del otro lado, ni qué llevar.')],
       },
       {
-        id: 'pared_fondo', name: 'Pared del fondo', rect: [1250, 150, 300, 380], walk: [1350, 630],
+        id: 'pared_fondo', name: 'Pared del fondo', rect: [1385, 90, 198, 500], walk: [1420, 640],
         look: (s) => [say(byEra(s, 'Una pared de ladrillo donde terminan los caños. Pego la oreja: el tic-tac viene de ahí.', 'En la pared no hay nada. La puerta sólo está en el reflejo.', 'Una puerta de tinta.'))],
       },
     ],
@@ -648,10 +649,11 @@ export const ROOMS: Record<string, RoomDef> = {
 
   // =========================================================== SALA DEL RELOJ (anomalía)
   reloj: {
-    id: 'reloj', name: 'La sala del reloj', width: 1600, ambience: 'void', forceEra: 'sombras',
-    floor: [[60, 560], [1540, 560], [1570, 708], [30, 708]],
-    scale: [560, 0.86, 708, 0.86],
-    spawn: [260, 640],
+    id: 'reloj', name: 'La sala del reloj', width: 1582, ambience: 'void', forceEra: 'sombras',
+    // Coordenadas sobre la ilustración pintada (public/art/reloj-sombras.webp, 1582×720).
+    floor: [[40, 645], [1520, 635], [1582, 716], [0, 716]],
+    scale: [635, 0.98, 716, 0.98],
+    spawn: [300, 688],
     onEnter: (s) => (flag(s, 'enteredVoid') ? [] : [
       { t: 'flag', k: 'enteredVoid' }, { t: 'event', id: 'void_intro' },
       say('Papel. Todo es papel y tinta, como si la casa fuera un dibujo de sí misma.'),
@@ -660,7 +662,15 @@ export const ROOMS: Record<string, RoomDef> = {
     ]),
     hotspots: [
       {
-        id: 'rosa_atrapada', name: 'Rosa', rect: [300, 360, 110, 260], walk: [470, 650], face: 'left', npc: 'rosa_ink',
+        id: 'escalera_flotante', name: 'Escalera', rect: [20, 150, 270, 320],
+        look: [say('Una escalera que no lleva a ningún lado. Los escalones gotean tinta hacia arriba.')],
+      },
+      {
+        id: 'ventana_flotante', name: 'Ventana', rect: [300, 0, 165, 290],
+        look: [say('La ventana del cuarto de Isabel, flotando sola. Del otro lado llueve en 1909.')],
+      },
+      {
+        id: 'rosa_atrapada', name: 'Rosa', rect: [400, 335, 120, 330], walk: [580, 690], face: 'left', npc: 'rosa_ink',
         when: (s) => !flag(s, 'rosaFree'),
         look: [say('Rosa barre un piso que no existe, una y otra vez. La tinta le sube por las piernas como hiedra.')],
         talk: [say('¡Rosa! ¡Rosa!'), narr('Rosa no levanta la vista. Barre.')],
@@ -670,14 +680,14 @@ export const ROOMS: Record<string, RoomDef> = {
         },
       },
       {
-        id: 'rosa_libre', name: 'Rosa', rect: [300, 360, 110, 260], walk: [470, 650], face: 'left', npc: 'rosa',
+        id: 'rosa_libre', name: 'Rosa', rect: [400, 335, 120, 330], walk: [580, 690], face: 'left', npc: 'rosa',
         when: (s) => flag(s, 'rosaFree'),
         look: [say('Rosa, temblando, pero entera.')],
         talk: [{ t: 'say', who: 'rosa', text: 'No me suelte la luz, señorita. No me la suelte.' }],
       },
       {
-        id: 'reloj_grande', name: 'El Reloj de Sombras', rect: [620, 60, 360, 480], walk: [800, 620],
-        look: [say('Un reloj del tamaño de una capilla. En lugar de números tiene fotografías, mal veladas, de una misma tarde. En el centro falta una rueda.')],
+        id: 'reloj_grande', name: 'El Reloj de Sombras', rect: [690, 0, 260, 620], walk: [820, 685],
+        look: [say('Un reloj del tamaño de una capilla, enredado en raíces de tinta. Las agujas tiemblan en las doce, como si no se animaran a avanzar. En el centro de la esfera falta una rueda.')],
         use: (s) => has(s, 'engranaje') ? [say('Falta una pieza. La tengo yo.')] : [say('No tengo nada que hacer con él.')],
         useItem: {
           engranaje: (s) => !flag(s, 'rosaFree')
@@ -688,12 +698,12 @@ export const ROOMS: Record<string, RoomDef> = {
         },
       },
       {
-        id: 'sombra', name: 'La Sombra', rect: [980, 80, 200, 300], npc: 'sombra', walk: [1000, 620],
+        id: 'sombra', name: 'La Sombra', rect: [1170, 100, 260, 470], npc: 'sombra', walk: [1120, 690],
         look: [say('Detrás del reloj, una forma de tinta con alas de levita. Imita mis gestos con un instante de retraso.')],
         talk: [{ t: 'dialog', id: 'sombra' }],
       },
       {
-        id: 'isabel', name: 'Isabel', rect: [1190, 380, 90, 220], walk: [1110, 650], face: 'right', npc: 'isabel',
+        id: 'isabel', name: 'Isabel', rect: [1020, 420, 90, 248], walk: [960, 690], face: 'right', npc: 'isabel',
         look: [say('Una niña de vestido blanco, con una cinta celeste. Es un dibujo hecho con muy poca tinta: casi papel.')],
         talk: [{ t: 'dialog', id: 'isabel' }],
         useItem: {
