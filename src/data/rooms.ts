@@ -21,6 +21,20 @@ function fragment(id: string, rect: [number, number, number, number], era: '1920
   };
 }
 
+/** Anselmo oye el ruido, baja con una linterna, destraba el candado y abre el portón. */
+function anselmoComes(): Effect[] {
+  return [
+    { t: 'wait', ms: 900 },
+    narr('Pasos sobre la grava, del otro lado. Una linterna que se acerca entre la lluvia.'),
+    { t: 'event', id: 'anselmo_gate' },
+    { t: 'dialog', id: 'anselmo_porton' },
+    { t: 'sfx', id: 'unlock' }, narr('Anselmo destraba el candado con una llave larga. La cadena cae al barro. El portón se abre con un quejido.'), { t: 'sfx', id: 'gate' },
+  ];
+}
+function callAnselmo(line: string): Effect[] {
+  return [{ t: 'anim', anim: 'use' }, { t: 'sfx', id: 'door_stuck' }, say(line), ...anselmoComes()];
+}
+
 export const ROOMS: Record<string, RoomDef> = {
   // =========================================================== ENTRADA
   entrada: {
@@ -41,17 +55,20 @@ export const ROOMS: Record<string, RoomDef> = {
         look: (s) => [say(flag(s, 'gateOpen') ? 'Abierto. Del otro lado, el jardín se hunde en la niebla.' : 'Hierro forjado, con un monograma: una V entrelazada con una S. Cerrado con cadena.')],
         exit: {
           to: 'jardin', at: [80, 670], when: (s) => flag(s, 'gateOpen'),
-          locked: [say('Cerrado con cadena. Tiene que haber una manera de avisar que llegué.')],
+          locked: () => callAnselmo('Sacudo el portón. La cadena golpea contra los barrotes y el candado suena como una campana rota.'),
         },
+      },
+      {
+        id: 'candado', name: 'Candado', rect: [1030, 415, 55, 75], walk: [1060, 640],
+        look: (s) => [say(flag(s, 'gateOpen') ? 'El candado cuelga abierto de la cadena.' : 'Un candado de bronce, grande como un puño, en una cadena gruesa. Está frío y mojado.')],
+        use: (s) => flag(s, 'gateOpen') ? [say('Ya está abierto.')] : callAnselmo('Tironeo del candado. No cede, pero la cadena hace un ruido que se tiene que oír desde la casa.'),
+        take: (s) => flag(s, 'gateOpen') ? [say('Ya está abierto.')] : callAnselmo('Tironeo del candado. No cede, pero la cadena hace un ruido que se tiene que oír desde la casa.'),
       },
       {
         id: 'campana', name: 'Campana', rect: [1365, 195, 100, 240], walk: [1330, 640], prop: 'campana',
         look: [say('Una campana de bronce verdeada, con un cordón de cuero.')],
         use: (s) => flag(s, 'gateOpen') ? [say('Ya me abrieron. No hace falta despertar a nadie más.')] : [
-          { t: 'anim', anim: 'use' }, { t: 'sfx', id: 'bell' }, { t: 'wait', ms: 900 },
-          narr('Pasos sobre la grava, del otro lado. Una linterna que se acerca entre la lluvia.'),
-          { t: 'sfx', id: 'gate' }, { t: 'event', id: 'anselmo_gate' },
-          { t: 'dialog', id: 'anselmo_porton' },
+          { t: 'anim', anim: 'use' }, { t: 'sfx', id: 'bell' }, ...anselmoComes(),
         ],
       },
       {

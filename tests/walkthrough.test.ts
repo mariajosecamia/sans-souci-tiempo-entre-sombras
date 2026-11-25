@@ -122,9 +122,13 @@ describe('recorrido completo', () => {
 });
 
 describe('cerrojos', () => {
-  it('el portón está cerrado hasta tocar la campana', () => {
+  it('el portón está cerrado hasta llamar a Anselmo', () => {
     const g = new Sim();
-    expect(() => g.go('porton')).toThrow();
+    expect(g.s.flags.gateOpen).toBeFalsy();
+    g.do('candado', 'use');
+    expect(g.s.flags.gateOpen).toBe(true);
+    g.go('porton');
+    expect(g.s.room).toBe('jardin');
   });
   it('la escalera está trabada en 1920 antes de subir por el otro tiempo', () => {
     const g = new Sim();

@@ -18,7 +18,7 @@ export const OUTFITS: Record<string, Outfit> = {
     boots: '#49372b', scarf: '#733e43', bag: '#49372b', braid: true, height: 300, build: 1,
   },
   anselmo: {
-    skin: '#9c7356', hair: '#8f8a80', top: '#cfc5ad', vest: '#3b362f', legs: '#4f463b', sash: '#5b4638',
+    skin: '#9c7356', hair: '#8f8a80', top: '#cfc5ad', vest: '#3b362f', legs: '#4f463b',
     boots: '#2e2620', scarf: '#62694c', height: 296, build: 1.08, beard: true, grey: true, hat: true,
   },
   mercedes: {
