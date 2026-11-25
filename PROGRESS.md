@@ -40,3 +40,4 @@ Ale eligió la fachada en abandono pintada como referencia de todo el juego. Los
 - Tomar/usar algo chico: Elena camina hasta el costado del objeto (`reachPoint`); se agacha si está abajo y estira la mano si está alto.
 - Mirar: Elena hace el gesto de examinar.
 - Nubes: `tools/skydrift.py` pinta una tira de nubes con los colores del cielo de cada lámina; se mueven más rápido y más visibles.
+- Época de las sombras (sala del reloj y demás): los personajes se ven en tinta sepia sobre papel (`inkify`, ColorMatrix de WebGL); Rosa atrapada es tinta oscura y se balancea barriendo en vez de deslizarse; Isabel, casi papel.

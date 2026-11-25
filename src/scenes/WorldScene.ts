@@ -622,9 +622,10 @@ export class WorldScene extends Phaser.Scene {
         const at = this.painted ? h.npcAt : undefined;
         const sp = this.npcSprite(key, at?.[0] ?? x + w / 2, at?.[1] ?? y + hh, npcFace).setDepth(y + hh);
         if (at) sp.setScale(sp.scaleX * at[2], sp.scaleY * at[2]);
-        if (h.npc === 'rosa_ink') { sp.setTint(0x333333); this.tweens.add({ targets: sp, x: sp.x + 12, duration: 700, yoyo: true, repeat: -1, ease: 'Sine.inOut' }); }
-        if (h.npc === 'isabel') { sp.setAlpha(0.72); this.tweens.add({ targets: sp, alpha: 0.45, duration: 2000, yoyo: true, repeat: -1 }); }
-        if (era === 'sombras' && h.npc !== 'isabel') sp.setTint(0x9a9690);
+        // Rosa atrapada: barre sin parar, con un vaivén corto (no se desliza por el piso)
+        if (h.npc === 'rosa_ink') this.tweens.add({ targets: sp, angle: { from: -2.5, to: 2.5 }, duration: 650, yoyo: true, repeat: -1, ease: 'Sine.inOut' });
+        if (h.npc === 'isabel') { sp.setAlpha(0.8); this.tweens.add({ targets: sp, alpha: 0.6, duration: 2200, yoyo: true, repeat: -1, ease: 'Sine.inOut' }); }
+        sp.setData('ink', era === 'sombras' ? (h.npc === 'rosa_ink' ? 'dark' : h.npc === 'isabel' ? 'pale' : 'ink') : null);
         this.npcs.push(sp);
       }
     }
@@ -641,6 +642,25 @@ export class WorldScene extends Phaser.Scene {
     // en las salas pintadas, los personajes toman la luz de la ilustración
     const plateTint = PAINTED[this.room.id]?.[era]?.tint;
     if (plateTint) { this.player.setTint(plateTint); for (const n of this.npcs) n.setTint(plateTint); }
+    // en el tiempo de las sombras todo es papel y tinta: también los personajes (Elena conserva un resto de color)
+    this.inkify(this.player, era === 'sombras' ? 'elena' : null);
+    for (const n of this.npcs) if (n.texture.key !== 'sombra') this.inkify(n, n.getData('ink'));
+  }
+
+  /** Pasa un personaje a tinta sepia sobre papel (sólo WebGL). */
+  private inkify(sp: Phaser.GameObjects.Sprite, kind: 'elena' | 'ink' | 'dark' | 'pale' | null): void {
+    if (!sp.preFX) {
+      if (kind === 'dark') sp.setTint(0x4a453e);
+      else if (kind) sp.setTint(0xa8a298);
+      return;
+    }
+    sp.preFX.clear();
+    if (!kind) return;
+    const cm = sp.preFX.addColorMatrix();
+    if (kind === 'elena') { cm.saturate(-0.7); cm.sepia(true); cm.contrast(0.08, true); return; }
+    cm.grayscale(1); cm.sepia(true); cm.contrast(0.18, true);
+    if (kind === 'dark') { cm.brightness(0.45, true); cm.contrast(0.35, true); }
+    if (kind === 'pale') { cm.brightness(1.12, true); cm.contrast(-0.25, true); }
   }
 
   private spawnAtmosphere(era: Era): void {
