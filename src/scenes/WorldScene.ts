@@ -971,10 +971,10 @@ export class WorldScene extends Phaser.Scene {
         this.temp.push(sp);
         const H = this.elenaH(600), k = sp.scaleY * 0.75, dir = toRight ? 1 : -1;
         const hx = 1050 + dir * 71 * k, hy = 600 - 272 * k;
-        const farol = this.add.image(hx, hy, 'obj-farol').setOrigin(0.5, 14 / 256).setScale((0.17 * H) / 232).setDepth(561).setAlpha(0);
+        const farol = this.add.image(hx, hy, 'obj-farol').setOrigin(0.5, 14 / 256).setScale((0.2 * H) / 232).setDepth(561).setAlpha(0);
         this.temp.push(farol);
         this.tweens.add({ targets: farol, angle: { from: -4, to: 4 }, duration: 1400, yoyo: true, repeat: -1, ease: 'Sine.inOut' });
-        const lamp = this.add.image(hx, hy + 0.1 * H, 'glow').setBlendMode(Phaser.BlendModes.ADD).setDepth(9150).setScale(0.8).setAlpha(0);
+        const lamp = this.add.image(hx, hy + 0.11 * H, 'glow').setBlendMode(Phaser.BlendModes.ADD).setDepth(9150).setScale(0.45).setAlpha(0);
         this.temp.push(lamp);
         this.tweens.add({ targets: [sp, farol, lamp], alpha: 1, duration: 1200 });
         await this.delay(1300);
