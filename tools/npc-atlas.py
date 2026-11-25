@@ -10,7 +10,9 @@ FW, FH = 384, 576
 sheet = Image.new('RGBA', (FW * 2, FH * len(IDS)), (0, 0, 0, 0))
 for r, n in enumerate(IDS):
     for c in range(2):
-        im = Image.open(os.path.join(src, '%s-quieta-%d.png' % (n, c + 1))).convert('RGBA')
+        f = os.path.join(src, '%s-sentada-%d.png' % (n, c + 1))
+        if not os.path.exists(f): f = os.path.join(src, '%s-quieta-%d.png' % (n, c + 1))
+        im = Image.open(f).convert('RGBA')
         a = np.array(im)
         a[:, :, 3] = np.where(a[:, :, 3] < 10, 0, a[:, :, 3])
         bot = int(np.where((a[:, :, 3] > 128).sum(1) > 3)[0][-1])

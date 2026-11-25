@@ -320,7 +320,7 @@ export const ROOMS: Record<string, RoomDef> = {
     spawn: [1480, 660],
     hotspots: [
       {
-        id: 'mercedes', name: 'Doña Mercedes', rect: [120, 380, 190, 270], walk: [420, 680], face: 'left', npc: 'mercedes',
+        id: 'mercedes', name: 'Doña Mercedes', rect: [90, 370, 190, 270], walk: [420, 680], face: 'left', npc: 'mercedes',
         look: [say('Una mujer pequeña, de luto antiguo, sentada muy derecha. Tiene el pelo blanco y las manos ocupadas en nada.')],
         talk: [{ t: 'dialog', id: 'mercedes' }],
       },

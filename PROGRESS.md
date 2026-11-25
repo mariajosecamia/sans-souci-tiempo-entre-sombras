@@ -27,7 +27,7 @@ Ale eligió la fachada en abandono pintada como referencia de todo el juego. Los
 
 ## Siguiente
 - Las 11 salas ya usan láminas pintadas en todas sus épocas. Falta el portón abierto.
-- Mercedes sentada sin sillón (el salón ya tiene uno pintado): pedido al hilo de arte.
+
 
 - Integrar ilustraciones pintadas (manifiesto de capas PNG) unificadas con el mismo tratamiento de papel y paleta.
 - Mejorar el dibujo de Elena y hoja de personaje maestra.
