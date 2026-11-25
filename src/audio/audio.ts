@@ -164,6 +164,30 @@ class AudioEngine {
     o.start(t); o.stop(t + dur + 0.05);
   }
 
+  /** Golpe metálico: parciales inarmónicos que se apagan (hierro, bronce, eslabones). */
+  private clink(f: number, gain: number, at = 0, dur = 0.35): void {
+    this.tone(f, f * 0.995, dur, gain, 'sine', at);
+    this.tone(f * 2.76, f * 2.74, dur * 0.6, gain * 0.5, 'sine', at);
+    this.tone(f * 5.4, f * 5.35, dur * 0.35, gain * 0.25, 'sine', at);
+    this.burst(0.02, f * 2, 3, gain * 1.2, 'bandpass', at);
+  }
+
+  /** Chirrido largo de bisagra de hierro, con temblor. */
+  private hinge(dur: number, gain: number, at = 0): void {
+    if (!this.ctx) return;
+    const ctx = this.ctx, t = ctx.currentTime + at;
+    const o = ctx.createOscillator(); o.type = 'sawtooth';
+    o.frequency.setValueAtTime(260, t);
+    for (let k = 1; k <= 12; k++) o.frequency.linearRampToValueAtTime(220 + Math.random() * 160 - k * 6, t + (dur * k) / 12);
+    const lfo = ctx.createOscillator(); lfo.frequency.value = 23; const lg = ctx.createGain(); lg.gain.value = 18; lfo.connect(lg); lg.connect(o.frequency);
+    const f = ctx.createBiquadFilter(); f.type = 'bandpass'; f.frequency.value = 1100; f.Q.value = 3;
+    const g = ctx.createGain();
+    g.gain.setValueAtTime(0.0001, t); g.gain.linearRampToValueAtTime(gain, t + 0.15);
+    g.gain.setValueAtTime(gain, t + dur * 0.7); g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+    o.connect(f); f.connect(g); g.connect(this.buses.sfx!);
+    o.start(t); lfo.start(t); o.stop(t + dur + 0.05); lfo.stop(t + dur + 0.05);
+  }
+
   tick(gain = 0.1, pitch = 1): void { this.burst(0.03, 3200 * pitch, 6, gain); }
   /** Tecla de máquina de escribir: golpe seco + tipo metálico. */
   key(): void { const p = 0.85 + Math.random() * 0.3; this.burst(0.025, 2600 * p, 5, 0.07); this.burst(0.012, 5200 * p, 8, 0.03); }
@@ -181,10 +205,16 @@ class AudioEngine {
   sfx(id: string): void {
     if (!this.ctx) return;
     switch (id) {
-      case 'bell': [0, 0.5, 1.0].forEach((d) => this.note(523, this.ctx!.currentTime + d, 2.2, 0.12, undefined, 2)); break;
-      case 'gate': this.creak(0.4); this.burst(0.3, 200, 2, 0.3, 'lowpass', 0.6); break;
+      case 'bell': [0, 0.5, 1.0].forEach((d) => { this.note(523, this.ctx!.currentTime + d, 2.2, 0.12, undefined, 2); this.clink(523, 0.05, d, 1.6); }); break;
+      case 'give': this.burst(0.12, 1400, 0.8, 0.12); this.tone(500, 700, 0.12, 0.025); break;
+      // portón de hierro: chirrido largo de las bisagras y el golpe del ala contra el tope
+      case 'gate': this.hinge(2.4, 0.22); this.burst(0.5, 160, 1, 0.5, 'lowpass', 2.3); this.clink(180, 0.12, 2.3, 0.9); break;
+      // cadena: los eslabones se deslizan, golpean entre sí y caen en el barro
+      case 'chain': for (let i = 0; i < 9; i++) this.clink(1700 + Math.random() * 1500, 0.06 + Math.random() * 0.04, i * (0.05 + Math.random() * 0.05), 0.25);
+        this.burst(0.35, 260, 1, 0.45, 'lowpass', 0.6); this.burst(0.25, 900, 0.8, 0.12, 'bandpass', 0.62); break;
       case 'door_stuck': this.burst(0.12, 180, 1, 0.4, 'lowpass'); this.burst(0.1, 220, 1, 0.3, 'lowpass', 0.18); break;
-      case 'unlock': this.burst(0.04, 2600, 4, 0.3); this.burst(0.05, 1800, 4, 0.3, 'bandpass', 0.12); break;
+      // llave que gira y el pestillo que salta
+      case 'unlock': this.burst(0.06, 2200, 3, 0.25); this.clink(900, 0.08, 0.1, 0.3); this.burst(0.04, 1500, 4, 0.4, 'bandpass', 0.22); this.clink(620, 0.12, 0.24, 0.5); break;
       case 'pickup': this.burst(0.08, 1200, 1, 0.15); this.tone(600, 900, 0.1, 0.03); break;
       case 'paper': this.burst(0.25, 3500, 0.7, 0.12); break;
       case 'match': this.burst(0.15, 4000, 0.6, 0.25); this.burst(0.6, 600, 0.5, 0.06, 'lowpass', 0.1); break;

@@ -12,9 +12,9 @@ fg = np.array(Image.open(base + '-fg.webp').convert('RGBA'))
 sky = fg[..., 3] < 20
 px = plate[sky]
 lum = px.mean(1)
-hi = px[lum >= np.percentile(lum, 88)].mean(0) * 1.10   # cara iluminada
+hi = px[lum >= np.percentile(lum, 88)].mean(0) * 1.18   # cara iluminada
 mid = px[(lum > np.percentile(lum, 40)) & (lum < np.percentile(lum, 60))].mean(0)
-lo = px[lum <= np.percentile(lum, 15)].mean(0) * 0.85   # panza en sombra
+lo = px[lum <= np.percentile(lum, 15)].mean(0) * 0.74   # panza en sombra
 FW, FH, N = 640, 240, 6
 yy, xx = np.mgrid[0:FH, 0:FW].astype(np.float32)
 def fbm(oct=5):

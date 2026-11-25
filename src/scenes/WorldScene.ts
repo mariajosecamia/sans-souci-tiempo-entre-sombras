@@ -56,6 +56,7 @@ export class WorldScene extends Phaser.Scene {
     this.load.spritesheet('elena-p', 'art/elena.webp', { frameWidth: ELENA_FW, frameHeight: ELENA_FH });
     // objetos pintados que aparecen sobre las salas (los que se pueden tomar)
     this.load.image('obj-aceitera', 'art/obj/aceitera.webp');
+    this.load.image('sombra-breath', 'art/reloj-sombras-sombra.webp');
     // personajes secundarios pintados: una fila por personaje, quieta y parpadeo
     this.load.spritesheet('npcs-p', 'art/npcs.webp', { frameWidth: ELENA_FW, frameHeight: ELENA_FH });
     this.load.image('obj-lata', 'art/obj/lata-querosen.webp');
@@ -67,6 +68,8 @@ export class WorldScene extends Phaser.Scene {
   private dir: 'side' | 'back' | 'front' = 'side';
   private stepFrames = new Set<number>([0, 5]);
   private reachHigh = false;
+  /** Personaje con quien se está tratando (para dar y recibir objetos). */
+  private talkTarget: Phaser.GameObjects.Sprite | null = null;
 
   private elenaAnims(): void {
     if (!this.textures.exists('elena-p')) return;
@@ -291,6 +294,7 @@ export class WorldScene extends Phaser.Scene {
   }
 
   private async approach(h: Hotspot, verb?: Verb): Promise<void> {
+    this.talkTarget = h.npc ? this.npcs.find((n) => n.getData('hid') === h.id) ?? null : null;
     if (verb === 'look' && !h.exit) {
       this.face(h.rect[0] + h.rect[2] / 2);
       // mirar algo: se detiene a observarlo (sin frenar el texto)
@@ -304,6 +308,9 @@ export class WorldScene extends Phaser.Scene {
     await this.walkTo(x, y);
     // ¿la mano tiene que subir (estirarse) o bajar (agacharse)? según la altura del objeto respecto de sus pies
     this.reachHigh = this.player.y - (h.rect[1] + h.rect[3] * 0.55) > this.elenaH() * 0.4;
+    // quien recibe a Elena se vuelve hacia ella (salvo quien está sentada)
+    const tgt = this.talkTarget, row = tgt && WorldScene.NPC_ROW[tgt.getData('who')];
+    if (tgt && row && !h.npcAt && tgt.texture.key === 'npcs-p') tgt.setFlipX((this.player.x < tgt.x ? -1 : 1) !== row[1]);
     if (h.face) this.facing = h.face === 'left' ? -1 : 1;
     else this.face(h.rect[0] + h.rect[2] / 2);
     this.player.setFlipX(this.facing < 0);
@@ -418,7 +425,11 @@ export class WorldScene extends Phaser.Scene {
     if (fade) await this.fadeIn(450);
   }
 
+  /** Cambia con cada sala dibujada: los efectos con temporizador propio se cortan solos. */
+  private fxGen = 0;
+
   private clearRoom(): void {
+    this.fxGen++;
     for (const o of [...this.layerObjs, ...this.npcs, ...this.props, ...this.glows, ...this.particles]) o.destroy();
     this.clouds = [];
     this.layerObjs = []; this.npcs = []; this.props = []; this.glows = []; this.particles = [];
@@ -512,6 +523,30 @@ export class WorldScene extends Phaser.Scene {
         crop(f.x, f.y, f.w, f.h, 'Curtain', -17);
       } else if (f.k === 'plants') {
         crop(f.x, f.y, f.w, f.h, 'Sway', -17);
+      } else if (f.k === 'fountain' && !still) {
+        // agua que rebalsa de cada plato y cae al de abajo, y ondas que se abren en la pileta
+        const full = f.flow === 'full';
+        f.tiers.forEach(([x0, x1, y], i) => {
+          const below = i + 1 < f.tiers.length ? f.tiers[i + 1][2] : f.pool[2];
+          const fall = below - y;
+          const ms = Math.sqrt((2 * fall) / 900) * 1000;
+          const em = this.add.particles(0, 0, 'raindrop', {
+            x: { min: x0, max: x1 }, y, lifespan: ms, speedY: { min: 10, max: 40 }, gravityY: 900, speedX: { min: -8, max: 8 },
+            alpha: { start: full ? 0.55 : 0.4, end: full ? 0.25 : 0.1 }, scale: { min: 0.35, max: 0.6 }, tint: 0xf4efe2,
+            quantity: 1, frequency: full ? 22 - i * 4 : 900 + Math.random() * 700,
+          }).setDepth(-16);
+          this.particles.push(em);
+        });
+        const [px0, px1, py, ph] = f.pool;
+        const gen = this.fxGen;
+        const ripple = () => {
+          if (gen !== this.fxGen) return;
+          const rx = px0 + Math.random() * (px1 - px0), ry = py + (Math.random() - 0.5) * ph;
+          const r = this.add.ellipse(rx, ry, 10, 3).setStrokeStyle(1.2, 0xf4efe2, 0.5).setDepth(-16.5);
+          this.tweens.add({ targets: r, scaleX: 4, scaleY: 4, alpha: 0, duration: 1400, ease: 'Sine.out', onComplete: () => r.destroy() });
+          this.time.delayedCall(full ? 120 + Math.random() * 200 : 1500 + Math.random() * 1500, ripple);
+        };
+        ripple();
       }
     }
   }
@@ -538,8 +573,8 @@ export class WorldScene extends Phaser.Scene {
           const y = 30 + far * 55 + Math.random() * 40;
           const scl = 0.55 + far * 0.25 + Math.random() * 0.2;
           const cl = this.add.image((i / n) * W + Math.random() * 180, y, pk + '-clouds', Math.floor(Math.random() * 6))
-            .setDepth(-19.6 + far * 0.03).setScale(scl, scl * (0.85 + Math.random() * 0.3)).setAlpha(0.7 + far * 0.1).setFlipX(Math.random() < 0.5);
-          if (!this.opts.reduceMotion) this.clouds.push({ spr: cl, speed: 5 + far * 6 + Math.random() * 4 });
+            .setDepth(-19.6 + far * 0.03).setScale(scl, scl * (0.85 + Math.random() * 0.3)).setAlpha(0.82 + far * 0.07).setFlipX(Math.random() < 0.5);
+          if (!this.opts.reduceMotion) this.clouds.push({ spr: cl, speed: 12 + far * 12 + Math.random() * 6 });
           this.layerObjs.push(cl);
         }
         const fg = this.add.image(plate.dx ?? 0, plate.dy ?? 0, pk + '-fg').setOrigin(0).setScale(sc).setDepth(-19);
@@ -552,6 +587,13 @@ export class WorldScene extends Phaser.Scene {
       }
       const vig = this.add.image(320, 180, 'vignette').setOrigin(0).setScrollFactor(0).setDisplaySize(1280, 720).setDepth(9800).setBlendMode(Phaser.BlendModes.MULTIPLY);
       this.layerObjs.push(img, vig);
+      // la Sombra pintada detrás del reloj respira: la tinta se hincha y se contrae, apenas
+      if (this.room.id === 'reloj' && era === 'sombras' && this.textures.exists('sombra-breath') && !this.opts.reduceMotion) {
+        const sb = this.add.image(1110 + 195, 40 + 580, 'sombra-breath').setOrigin(0.5, 1).setDepth(-19.4);
+        this.tweens.add({ targets: sb, scaleY: 1.035, scaleX: 1.015, duration: 2800, yoyo: true, repeat: -1, ease: 'Sine.inOut' });
+        this.tweens.add({ targets: sb, x: sb.x + 6, angle: 0.8, duration: 4300, yoyo: true, repeat: -1, ease: 'Sine.inOut' });
+        this.layerObjs.push(sb);
+      }
       // objetos pintados que ya se tomaron: se tapan con un retazo de la misma pintura
       const vis = new Set(visibleHotspots(this.room.id, this.s).map((h) => h.id));
       for (const [hid, ip] of Object.entries(plate.inPaint ?? {})) {
@@ -629,6 +671,11 @@ export class WorldScene extends Phaser.Scene {
         if (key === 'sombra') {
           const sp = this.add.sprite(x + w / 2, y + hh, 'sombra', 0).setOrigin(0.5, 1).setScale(0.9 / this.sheets.sombra.res).setDepth(y + hh - 300).setAlpha(0.92);
           sp.play('sombra-idle');
+          // la Sombra respira hondo y ondula, como tinta en agua
+          if (!this.opts.reduceMotion) {
+            this.tweens.add({ targets: sp, scaleY: sp.scaleY * 1.04, scaleX: sp.scaleX * 0.98, duration: 2600, yoyo: true, repeat: -1, ease: 'Sine.inOut' });
+            this.tweens.add({ targets: sp, angle: { from: -1.5, to: 1.5 }, duration: 4200, yoyo: true, repeat: -1, ease: 'Sine.inOut' });
+          }
           this.npcs.push(sp);
           continue;
         }
@@ -641,6 +688,8 @@ export class WorldScene extends Phaser.Scene {
         if (h.npc === 'rosa_ink') this.tweens.add({ targets: sp, angle: { from: -2.5, to: 2.5 }, duration: 650, yoyo: true, repeat: -1, ease: 'Sine.inOut' });
         if (h.npc === 'isabel') { sp.setAlpha(0.8); this.tweens.add({ targets: sp, alpha: 0.6, duration: 2200, yoyo: true, repeat: -1, ease: 'Sine.inOut' }); }
         sp.setData('ink', era === 'sombras' ? (h.npc === 'rosa_ink' ? 'dark' : h.npc === 'isabel' ? 'pale' : 'ink') : null);
+        sp.setData('who', key).setData('hid', h.id);
+        if (h.npc !== 'rosa_ink') this.breathe(sp);
         this.npcs.push(sp);
       }
     }
@@ -660,6 +709,49 @@ export class WorldScene extends Phaser.Scene {
     // en el tiempo de las sombras todo es papel y tinta: también los personajes (Elena conserva un resto de color)
     this.inkify(this.player, era === 'sombras' ? 'elena' : null);
     for (const n of this.npcs) if (n.texture.key !== 'sombra') this.inkify(n, n.getData('ink'));
+  }
+
+  /** Respira: el pecho sube y baja apenas, y cada tanto cambia el peso de pierna. */
+  private breathe(sp: Phaser.GameObjects.Sprite): void {
+    if (this.opts.reduceMotion) return;
+    const sy = sp.scaleY;
+    this.tweens.add({ targets: sp, scaleY: sy * 1.012, duration: 1700 + Math.random() * 600, yoyo: true, repeat: -1, ease: 'Sine.inOut', delay: Math.random() * 800 });
+    this.tweens.add({ targets: sp, angle: { from: -0.5, to: 0.6 }, duration: 3800 + Math.random() * 1500, yoyo: true, repeat: -1, ease: 'Sine.inOut', delay: Math.random() * 2000 });
+  }
+
+  /** Quien habla acompaña con el cuerpo: un leve gesto de cabeza y hombros mientras dice su línea. */
+  private nod(who: string): void {
+    if (this.opts.reduceMotion) return;
+    const sp = this.npcs.find((n) => n.getData('who') === who);
+    if (!sp || sp.getData('nodding')) return;
+    sp.setData('nodding', true);
+    const y0 = sp.y;
+    this.tweens.add({ targets: sp, y: y0 - sp.displayHeight * 0.006, duration: 220, yoyo: true, repeat: 1, ease: 'Sine.inOut', onComplete: () => { sp.y = y0; sp.setData('nodding', false); } });
+  }
+
+  /** Dar o recibir un objeto: Elena estira la mano y el objeto pasa de una mano a la otra. */
+  private async handover(item: string, toElena: boolean): Promise<void> {
+    const npc = this.talkTarget;
+    if (!npc || !npc.active || Math.abs(npc.x - this.player.x) > 700) return;
+    this.face(npc.x);
+    const key = 'held-' + item;
+    if (!this.textures.exists(key)) this.textures.addCanvas(key, this.ui.icon(item, 96));
+    const H = this.elenaH();
+    const hand: Pt = [this.player.x + this.facing * H * 0.17, this.player.y - H * 0.5];
+    const other: Pt = [npc.x - this.facing * npc.displayHeight * 0.12, npc.y - npc.displayHeight * 0.5];
+    const [from, to] = toElena ? [other, hand] : [hand, other];
+    const img = this.add.image(from[0], from[1], key).setDepth(Math.max(this.player.depth, npc.depth) + 1).setScale((H * 0.13) / 96).setAlpha(0);
+    const tint = PAINTED[this.room.id]?.[this.s.era]?.tint; if (tint) img.setTint(tint);
+    this.player.play(this.anims.exists('elena-use') ? 'elena-use' : 'elena-idle');
+    audio.sfx('give');
+    this.player.once('animationcomplete', () => this.player.play('elena-idle'));
+    await new Promise<void>((r) => {
+      this.tweens.add({ targets: img, alpha: 1, duration: 150 });
+      this.tweens.add({ targets: img, x: to[0], duration: 650, ease: 'Sine.inOut' });
+      this.tweens.add({ targets: img, y: Math.min(from[1], to[1]) - H * 0.06, duration: 325, yoyo: true, ease: 'Sine.out', onComplete: () => {
+        this.tweens.add({ targets: img, alpha: 0, scale: img.scale * 0.6, duration: 180, onComplete: () => { img.destroy(); r(); } });
+      } });
+    });
   }
 
   /** Pasa un personaje a tinta sepia sobre papel (sólo WebGL). */
@@ -748,6 +840,7 @@ export class WorldScene extends Phaser.Scene {
     try {
       await this.runEffects(effects);
     } finally {
+      this.talkTarget = null;
       for (const t of this.temp) t.destroy();
       this.temp = [];
       this.running = false; this.ui.busy = false;
@@ -774,10 +867,10 @@ export class WorldScene extends Phaser.Scene {
   private async runEffect(e: Effect): Promise<void> {
     const ui = this.ui;
     switch (e.t) {
-      case 'say': await ui.say(e.who ?? 'elena', e.text, this.opts); break;
+      case 'say': if (e.who && e.who !== 'elena') this.nod(e.who); await ui.say(e.who ?? 'elena', e.text, this.opts); break;
       case 'dialog': await this.runDialog(e.id); break;
-      case 'give': applyEffect(this.s, e); ui.renderInventory(this.s); ui.toast(`${L('Guardé en el estuche', 'Put in my satchel')}: ${t(ITEMS[e.item]?.name ?? e.item)}`); break;
-      case 'take': applyEffect(this.s, e); ui.renderInventory(this.s); break;
+      case 'give': await this.handover(e.item, true); applyEffect(this.s, e); ui.renderInventory(this.s); ui.toast(`${L('Guardé en el estuche', 'Put in my satchel')}: ${t(ITEMS[e.item]?.name ?? e.item)}`); break;
+      case 'take': await this.handover(e.item, false); applyEffect(this.s, e); ui.renderInventory(this.s); break;
       case 'flag': applyEffect(this.s, e); break;
       case 'doc': applyEffect(this.s, e); await ui.showDoc(e.id); break;
       case 'note': { const had = this.s.notes.includes(e.id); applyEffect(this.s, e); if (!had) ui.toast(L('Diario actualizado', 'Journal updated')); break; }
@@ -818,7 +911,7 @@ export class WorldScene extends Phaser.Scene {
     while (nodeId && guard++ < 60) {
       const node: typeof d.nodes[string] = d.nodes[nodeId];
       if (!node) break;
-      for (const [who, text] of node.lines) await this.ui.say(who, text, this.opts);
+      for (const [who, text] of node.lines) { if (who !== 'elena') this.nod(who); await this.ui.say(who, text, this.opts); }
       if (node.effects) await this.runEffects(node.effects);
       if (node.options) {
         const opts = node.options.filter((o) => (!o.when || o.when(this.s)) && (!o.onceFlag || !this.s.flags[o.onceFlag]));
@@ -851,7 +944,7 @@ export class WorldScene extends Phaser.Scene {
   private async runEvent(id: string): Promise<void> {
     switch (id) {
       case 'anselmo_gate': {
-        const sp = this.npcSprite('anselmo', 1050, 600, 'left').setDepth(560).setAlpha(0);
+        const sp = this.npcSprite('anselmo', 1050, 600, 'left').setDepth(560).setAlpha(0); this.breathe(sp);
         this.temp.push(sp);
         const lamp = this.add.image(1020, 470, 'glow').setBlendMode(Phaser.BlendModes.ADD).setDepth(9150).setScale(0.8).setAlpha(0);
         this.temp.push(lamp);
@@ -882,7 +975,7 @@ export class WorldScene extends Phaser.Scene {
       case 'musicbox': {
         audio.playMelody(MELODY, 0.6);
         await this.delay(600);
-        const sp = this.npcSprite('isabel', 1150, 640, 'left').setDepth(640).setAlpha(0);
+        const sp = this.npcSprite('isabel', 1150, 640, 'left').setDepth(640).setAlpha(0); this.breathe(sp);
         this.temp.push(sp);
         this.tweens.add({ targets: sp, alpha: 0.7, duration: 900, yoyo: true, hold: 1200 });
         await this.delay(1500);

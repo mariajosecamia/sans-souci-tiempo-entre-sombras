@@ -28,7 +28,7 @@ function anselmoComes(): Effect[] {
     narr('Pasos sobre la grava, del otro lado. Una linterna que se acerca entre la lluvia.'),
     { t: 'event', id: 'anselmo_gate' },
     { t: 'dialog', id: 'anselmo_porton' },
-    { t: 'sfx', id: 'unlock' }, narr('Anselmo destraba el candado con una llave larga. La cadena cae al barro. El portón se abre con un quejido.'), { t: 'sfx', id: 'gate' },
+    { t: 'sfx', id: 'unlock' }, { t: 'sfx', id: 'chain' }, narr('Anselmo destraba el candado con una llave larga. La cadena cae al barro. El portón se abre con un quejido.'), { t: 'sfx', id: 'gate' },
   ];
 }
 function callAnselmo(line: string): Effect[] {

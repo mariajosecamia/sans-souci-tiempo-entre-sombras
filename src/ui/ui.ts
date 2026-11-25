@@ -375,9 +375,9 @@ export class UI {
       if (tab === 'objetivos') {
         const cur = currentObjectives(s);
         if (!cur.length) content.appendChild($(`<p>${L('No hay nada pendiente.', 'Nothing pending.')}</p>`));
-        cur.forEach((o) => content.appendChild($(`<div class="entry"><h3>☐ ${esc(t(o.title))}</h3></div>`)));
+        cur.forEach((o) => content.appendChild($(`<div class="entry"><h3><i class="box"></i>${esc(t(o.title))}</h3></div>`)));
         const done = OBJECTIVES.filter((o) => o.done(s));
-        done.forEach((o) => content.appendChild($(`<div class="entry done"><h3>☑ ${esc(t(o.title))}</h3></div>`)));
+        done.forEach((o) => content.appendChild($(`<div class="entry done"><h3><i class="box on"></i>${esc(t(o.title))}</h3></div>`)));
       }
       if (tab === 'notas' || tab === 'personas') {
         const ids = s.notes.filter((n) => NOTES[n] && ((tab === 'personas') === (NOTES[n].cat === 'persona')));

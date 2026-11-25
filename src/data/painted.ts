@@ -24,7 +24,8 @@ export type Fx =
   | { k: 'fire'; x: number; y: number; w: number; h: number } // fuego de chimenea: calor y resplandor
   | { k: 'window'; x: number; y: number; w: number; h: number } // lluvia del otro lado del vidrio
   | { k: 'curtain'; x: number; y: number; w: number; h: number } // cortina que se mece
-  | { k: 'plants'; x: number; y: number; w: number; h: number }; // hojas, hiedra
+  | { k: 'plants'; x: number; y: number; w: number; h: number } // hojas, hiedra
+  | { k: 'fountain'; tiers: [number, number, number][]; pool: [number, number, number, number]; flow: 'full' | 'drip' }; // agua que cae de cada borde [x0, x1, y] y ondas en la pileta [x0, x1, y, alto]
 
 const candles = (pts: [number, number][]): Fx[] => pts.map(([x, y]) => ({ k: 'candle', x, y }));
 
@@ -33,8 +34,8 @@ export const OVERLAY_PROPS = new Set(['fragmento', 'aceitera', 'lata', 'reflejo'
 
 export const PAINTED: Record<string, Partial<Record<Era, Plate>>> = {
   jardin: {
-    '1920': { src: 'art/jardin-1920.webp', sky: true, veg: true, tint: 0xdcc4a0 },
-    abandono: { src: 'art/jardin-abandono.webp', sky: true, veg: true, tint: 0xb8b4a0 },
+    '1920': { src: 'art/jardin-1920.webp', sky: true, veg: true, tint: 0xdcc4a0, fx: [{ k: 'fountain', tiers: [[170, 232, 373], [152, 250, 418], [128, 272, 476]], pool: [100, 300, 538, 14], flow: 'full' }] },
+    abandono: { src: 'art/jardin-abandono.webp', sky: true, veg: true, tint: 0xb8b4a0, fx: [{ k: 'fountain', tiers: [[170, 232, 373], [152, 250, 418], [128, 272, 476]], pool: [100, 300, 538, 14], flow: 'drip' }] },
     sombras: { src: 'art/jardin-sombras.webp', sky: true, veg: true, tint: 0xd8d4cc },
   },
   hall: {
