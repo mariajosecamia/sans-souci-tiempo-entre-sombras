@@ -20,9 +20,10 @@ Ale eligió la fachada en abandono pintada como referencia de todo el juego. Los
 - Elena a escala de cada lámina; diálogos a máquina de escribir; papel, ornamentos y cintas en menús y cuadros.
 - Candado del portón: Anselmo lo destraba.
 - Español e inglés: selector en el menú principal y en Opciones (`src/i18n/`).
+- Láminas del invernadero, cuarto de Isabel, sótano y sala del reloj. Objetos pintados que se toman se tapan con un retazo (`inPaint` en `painted.ts`).
 
 ## Siguiente
-- Láminas que faltan: invernadero, cuarto de Isabel, sótano, sala del reloj; portón abierto.
+- Las 11 salas ya usan láminas pintadas en todas sus épocas. Falta el portón abierto.
 - Animaciones pintadas de Elena (caminar, agacharse, tomar, usar, leer, reaccionar) y objetos pintados.
 - Integrar ilustraciones pintadas (manifiesto de capas PNG) unificadas con el mismo tratamiento de papel y paleta.
 - Mejorar el dibujo de Elena y hoja de personaje maestra.
