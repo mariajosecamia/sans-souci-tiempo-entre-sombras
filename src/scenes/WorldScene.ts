@@ -4,7 +4,7 @@ import { ROOMS } from '../data/rooms';
 import { ITEMS } from '../data/items';
 import type { Effect, GameState, Hotspot, RoomDef, Pt, Verb } from '../systems/types';
 import { applyEffect, newState } from '../systems/state';
-import { PAINTED, plateKey } from '../data/painted';
+import { PAINTED, plateKey, OVERLAY_PROPS } from '../data/painted';
 import { interact, combine, inspectItem, visibleHotspots, hotspotName, verbsFor, eraOf, settleEra, eraToggleAvailable } from '../systems/logic';
 import { renderRoom, RenderedRoom } from '../art/render';
 import { buildSheet, buildSombra, buildCrow, ANIMS, FRAME_W, FRAME_H, FOOT_Y, Sheet } from '../art/sprites';
@@ -359,7 +359,8 @@ export class WorldScene extends Phaser.Scene {
 
   private spawnActors(era: Era): void {
     for (const h of visibleHotspots(this.room.id, this.s)) {
-      if (h.prop) {
+      const painted = !!PAINTED[this.room.id]?.[era] && this.textures.exists(plateKey(this.room.id, era));
+      if (h.prop && (!painted || OVERLAY_PROPS.has(h.prop))) {
         const [x, y, w, hh] = h.rect;
         const cv = drawProp(h.prop, era, w, hh, this.res);
         if (cv) {

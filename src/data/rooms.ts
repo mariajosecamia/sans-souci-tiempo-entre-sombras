@@ -24,10 +24,11 @@ function fragment(id: string, rect: [number, number, number, number], era: '1920
 export const ROOMS: Record<string, RoomDef> = {
   // =========================================================== ENTRADA
   entrada: {
-    id: 'entrada', name: 'El portón', width: 1600, outdoor: true, ambience: 'rain-out',
-    floor: [[40, 560], [1560, 560], [1580, 705], [20, 705]],
-    scale: [560, 0.86, 705, 0.86],
-    spawn: [260, 640],
+    id: 'entrada', name: 'El portón', width: 1583, outdoor: true, ambience: 'rain-out',
+    // Coordenadas sobre la ilustración pintada (public/art/entrada-*.webp, 1583×720).
+    floor: [[30, 625], [1550, 600], [1570, 712], [15, 712]],
+    scale: [600, 0.74, 712, 0.74],
+    spawn: [620, 670],
     onEnter: (s) => (flag(s, 'introDone') ? [] : [
       { t: 'flag', k: 'introDone' },
       say('Tandil, 12 de mayo de 1920. El zaino no quiso pasar de la tranquera: lo dejé atado allá abajo, con las orejas paradas.'),
@@ -36,7 +37,7 @@ export const ROOMS: Record<string, RoomDef> = {
     ]),
     hotspots: [
       {
-        id: 'porton', name: 'Portón de hierro', rect: [860, 170, 380, 400], walk: [1050, 620],
+        id: 'porton', name: 'Portón de hierro', rect: [800, 140, 540, 440], walk: [1070, 640],
         look: (s) => [say(flag(s, 'gateOpen') ? 'Abierto. Del otro lado, el jardín se hunde en la niebla.' : 'Hierro forjado, con un monograma: una V entrelazada con una S. Cerrado con cadena.')],
         exit: {
           to: 'jardin', at: [80, 670], when: (s) => flag(s, 'gateOpen'),
@@ -44,7 +45,7 @@ export const ROOMS: Record<string, RoomDef> = {
         },
       },
       {
-        id: 'campana', name: 'Campana', rect: [1262, 236, 52, 90], walk: [1250, 610], prop: 'campana',
+        id: 'campana', name: 'Campana', rect: [1365, 195, 100, 240], walk: [1330, 640], prop: 'campana',
         look: [say('Una campana de bronce verdeada, con un cordón de cuero.')],
         use: (s) => flag(s, 'gateOpen') ? [say('Ya me abrieron. No hace falta despertar a nadie más.')] : [
           { t: 'anim', anim: 'use' }, { t: 'sfx', id: 'bell' }, { t: 'wait', ms: 900 },
@@ -54,19 +55,19 @@ export const ROOMS: Record<string, RoomDef> = {
         ],
       },
       {
-        id: 'farol', name: 'Farol', rect: [560, 150, 90, 420], walk: [620, 640],
+        id: 'farol', name: 'Farol', rect: [455, 80, 105, 510], walk: [580, 660],
         look: [say('Un farol a gas, apagado. La lluvia lo hace sonar como un tambor muy chico.')],
       },
       {
-        id: 'sierras', name: 'Las sierras', rect: [0, 120, 520, 260],
+        id: 'sierras', name: 'Las sierras', rect: [0, 200, 450, 180],
         look: [say('Las sierras de Tandil, bajas y antiguas, como lomos de animales dormidos bajo la llovizna.')],
       },
       {
-        id: 'cartel', name: 'Cartel', rect: [960, 120, 180, 50],
+        id: 'cartel', name: 'Cartel', rect: [940, 40, 260, 70],
         look: [say('"BELLE OMBRE", en letras de hierro. "Bella sombra". Alguien tenía sentido del humor. O sabía algo.')],
       },
       {
-        id: 'valija', name: 'Mis alforjas', rect: [330, 610, 90, 60], walk: [300, 650], prop: 'valija',
+        id: 'valija', name: 'Mis alforjas', rect: [225, 505, 215, 125], walk: [470, 670], eras: ['1920'],
         look: [say('Las alforjas con el estuche de las placas. Pesan como si llevaran la sierra entera adentro.')],
         take: [say('Anselmo prometió subirla después. Me llevo lo importante: la cámara, la nota de mamá.')],
       },
@@ -128,7 +129,7 @@ export const ROOMS: Record<string, RoomDef> = {
       },
       {
         id: 'salida_porton', name: 'Camino al portón', rect: [0, 560, 45, 160],
-        exit: { to: 'entrada', at: [1380, 640] },
+        exit: { to: 'entrada', at: [1070, 650] },
       },
       {
         id: 'salida_invernadero', name: 'Sendero al invernadero', rect: [1720, 560, 45, 160],
@@ -209,7 +210,7 @@ export const ROOMS: Record<string, RoomDef> = {
       },
       {
         id: 'puerta_salon', name: 'Salón', rect: [790, 300, 200, 225], walk: [890, 585],
-        exit: { to: 'salon', at: [1420, 640] },
+        exit: { to: 'salon', at: [1480, 660] },
       },
       {
         id: 'retrato_aurelio', name: 'Retrato de Don Aurelio', rect: [405, 50, 115, 205], walk: [470, 620],
@@ -266,7 +267,7 @@ export const ROOMS: Record<string, RoomDef> = {
           llave_estudio: [{ t: 'anim', anim: 'use' }, { t: 'sfx', id: 'unlock' }, { t: 'take', item: 'llave_estudio' }, { t: 'flag', k: 'estudioOpen' }, say('La llave gira con un ruido seco, como un hueso.')],
         },
         exit: {
-          to: 'estudio', at: [180, 640], when: (s) => flag(s, 'estudioOpen'),
+          to: 'estudio', at: [200, 695], when: (s) => flag(s, 'estudioOpen'),
           locked: (s) => has(s, 'llave_estudio')
             ? [{ t: 'anim', anim: 'use' }, { t: 'sfx', id: 'unlock' }, { t: 'take', item: 'llave_estudio' }, { t: 'flag', k: 'estudioOpen' }, say('La llave gira con un ruido seco, como un hueso.'), { t: 'goto', room: 'estudio', at: [180, 640] }]
             : [{ t: 'sfx', id: 'door_stuck' }, say('Cerrada con llave.')],
@@ -290,18 +291,19 @@ export const ROOMS: Record<string, RoomDef> = {
 
   // =========================================================== SALÓN
   salon: {
-    id: 'salon', name: 'Salón', width: 1600, ambience: 'house', forceEra: '1920',
-    floor: [[60, 550], [1540, 550], [1570, 708], [30, 708]],
-    scale: [550, 0.86, 708, 0.86],
-    spawn: [1420, 640],
+    id: 'salon', name: 'Salón', width: 1582, ambience: 'house', forceEra: '1920',
+    // Coordenadas sobre la ilustración pintada (public/art/salon-1920.webp, 1582×720).
+    floor: [[340, 600], [1450, 585], [1570, 600], [1575, 712], [300, 712], [330, 660]],
+    scale: [585, 0.86, 712, 0.86],
+    spawn: [1480, 660],
     hotspots: [
       {
-        id: 'mercedes', name: 'Doña Mercedes', rect: [300, 360, 190, 250], walk: [560, 640], face: 'left', npc: 'mercedes',
+        id: 'mercedes', name: 'Doña Mercedes', rect: [120, 380, 190, 270], walk: [420, 680], face: 'left', npc: 'mercedes',
         look: [say('Una mujer pequeña, de luto antiguo, sentada muy derecha. Tiene el pelo blanco y las manos ocupadas en nada.')],
         talk: [{ t: 'dialog', id: 'mercedes' }],
       },
       {
-        id: 'costurero', name: 'Costurero', rect: [620, 520, 90, 80], walk: [660, 650], prop: 'costurero',
+        id: 'costurero', name: 'Costurero', rect: [340, 540, 125, 115], walk: [480, 680], 
         look: [say('Un costurero de marquetería, con carreteles de hilo bordó.')],
         use: (s) => {
           if (!flag(s, 'metMercedes')) return [say('No voy a revolver las cosas de la señora sin presentarme primero.')];
@@ -310,29 +312,29 @@ export const ROOMS: Record<string, RoomDef> = {
         },
       },
       {
-        id: 'chimenea', name: 'Chimenea', rect: [700, 250, 280, 270], walk: [840, 610],
+        id: 'chimenea', name: 'Chimenea', rect: [400, 255, 430, 295], walk: [620, 650],
         look: (s) => [say(flag(s, 'panelOpen') ? 'El fondo de la chimenea se corrió. Detrás, una escalera de piedra baja hacia el sótano.' : 'Una chimenea de mármol negro. El fuego está bajo. El fondo de hierro tiene un relieve de engranajes.')],
         exit: { to: 'sotano', at: [260, 640], when: (s) => flag(s, 'panelOpen'), locked: [say('Es una chimenea. No pienso meterme.')] },
       },
       {
-        id: 'fosforos', name: 'Fósforos', rect: [790, 228, 56, 26], walk: [830, 610], prop: 'fosforos',
+        id: 'fosforos', name: 'Fósforos', rect: [765, 232, 42, 30], walk: [760, 650], 
         when: (s) => !flag(s, 'tookMatches'),
         look: [say('Una caja de fósforos sobre la repisa, junto a un cenicero escondido detrás de un jarrón.')],
         take: [{ t: 'anim', anim: 'pickup' }, { t: 'give', item: 'fosforos' }, { t: 'flag', k: 'tookMatches' }, { t: 'sfx', id: 'pickup' }],
       },
       {
-        id: 'piano', name: 'Piano', rect: [1010, 330, 300, 220], walk: [1120, 630],
+        id: 'piano', name: 'Piano', rect: [900, 220, 310, 360], walk: [1060, 660],
         look: [say('Un Pleyel de media cola. Sobre el atril, un método de piano para niños con las esquinas dobladas.')],
         use: (s) => flag(s, 'panelOpen') ? [say('Ya me dijo lo que tenía que decirme.')] :
           s.docs.includes('melodia') ? [{ t: 'puzzle', id: 'piano' }]
             : [{ t: 'anim', anim: 'use' }, { t: 'sfx', id: 'piano_chord' }, say('Toco un acorde. Está afinado, perfectamente afinado. En una casa donde nadie toca.')],
       },
       {
-        id: 'ventanal', name: 'Ventanal', rect: [1330, 110, 190, 340],
+        id: 'ventanal', name: 'Ventanal', rect: [1210, 60, 235, 345],
         look: [say('La lluvia corre por el vidrio. Afuera, la fuente y la niebla.')],
       },
       {
-        id: 'salida', name: 'Volver al hall', rect: [1520, 250, 80, 300],
+        id: 'salida', name: 'Volver al hall', rect: [1460, 150, 122, 420], walk: [1480, 660],
         exit: { to: 'hall', at: [890, 590] },
       },
     ],
@@ -412,22 +414,23 @@ export const ROOMS: Record<string, RoomDef> = {
 
   // =========================================================== ESTUDIO
   estudio: {
-    id: 'estudio', name: 'Estudio de Don Aurelio', width: 1280, ambience: 'house', forceEra: '1920',
-    floor: [[60, 550], [1220, 550], [1250, 708], [30, 708]],
-    scale: [550, 0.86, 708, 0.86],
-    spawn: [180, 640],
+    id: 'estudio', name: 'Estudio de Don Aurelio', width: 1279, ambience: 'house', forceEra: '1920',
+    // Coordenadas sobre la ilustración pintada (public/art/estudio-1920.webp, 1279×720).
+    floor: [[100, 650], [1180, 650], [1250, 712], [90, 712]],
+    scale: [650, 1.0, 712, 1.0],
+    spawn: [200, 695],
     hotspots: [
       {
-        id: 'escritorio', name: 'Escritorio', rect: [420, 420, 440, 140], walk: [640, 640],
+        id: 'escritorio', name: 'Escritorio', rect: [290, 440, 660, 240], walk: [700, 700],
         look: [say('El escritorio de Aurelio: lupas, pinzas de relojero, un tintero seco. Un cajón central con tres discos de bronce.')],
       },
       {
-        id: 'cajon', name: 'Cajón de los discos', rect: [580, 500, 120, 44], walk: [640, 640], prop: 'cajon',
+        id: 'cajon', name: 'Cajón de los discos', rect: [560, 490, 130, 45], walk: [630, 700], 
         look: (s) => [say(flag(s, 'drawerOpen') ? 'El cajón quedó abierto. Vacío.' : 'Tres discos con símbolos grabados: soles, lunas, pájaros, llaves, ojos, estrellas. Una cerradura de combinación.')],
         use: (s) => flag(s, 'drawerOpen') ? [say('Vacío.')] : [{ t: 'puzzle', id: 'symbols' }],
       },
       {
-        id: 'cartas', name: 'Cartas', rect: [470, 400, 90, 30], walk: [560, 640], prop: 'cartas',
+        id: 'cartas', name: 'Cartas', rect: [800, 420, 100, 48], walk: [860, 700], 
         look: [say('Un atado de cartas con sellos belgas.')],
         take: (s) => flag(s, 'readVerhaegen') ? [{ t: 'doc', id: 'carta_verhaegen1' }] :
           [{ t: 'anim', anim: 'read' }, { t: 'flag', k: 'readVerhaegen' }, { t: 'doc', id: 'carta_verhaegen2' }, { t: 'doc', id: 'carta_verhaegen1' }, { t: 'note', id: 'verhaegen' }],
@@ -435,19 +438,19 @@ export const ROOMS: Record<string, RoomDef> = {
           [{ t: 'anim', anim: 'read' }, { t: 'flag', k: 'readVerhaegen' }, { t: 'doc', id: 'carta_verhaegen2' }, { t: 'doc', id: 'carta_verhaegen1' }, { t: 'note', id: 'verhaegen' }],
       },
       {
-        id: 'plano', name: 'Plano enmarcado', rect: [110, 140, 270, 210], walk: [260, 620],
+        id: 'plano', name: 'Plano enmarcado', rect: [205, 65, 200, 290], walk: [300, 700],
         look: [{ t: 'anim', anim: 'read' }, { t: 'doc', id: 'plano_casa' }, { t: 'note', id: 'plano' }],
       },
       {
-        id: 'retrato_isabel', name: 'Retrato de una niña', rect: [930, 150, 130, 170], walk: [990, 620],
+        id: 'retrato_isabel', name: 'Retrato de una niña', rect: [900, 120, 125, 185], walk: [960, 700],
         look: [say('Una niña de nueve o diez años, con una cinta celeste en el pelo. Debajo, una plaquita: ISABEL, 1900–1909.'), { t: 'note', id: 'isabel' }],
       },
       {
-        id: 'ventana', name: 'Ventana', rect: [1090, 100, 140, 300],
+        id: 'ventana', name: 'Ventana', rect: [1110, 10, 170, 390],
         look: [say('Da al invernadero. Veo a Anselmo moviéndose entre los vidrios empañados.')],
       },
       {
-        id: 'salida', name: 'Volver al hall', rect: [0, 240, 80, 320],
+        id: 'salida', name: 'Volver al hall', rect: [0, 30, 170, 670], walk: [170, 700],
         exit: { to: 'hall', at: [1070, 590] },
       },
     ],
@@ -580,7 +583,7 @@ export const ROOMS: Record<string, RoomDef> = {
     hotspots: [
       {
         id: 'escalera', name: 'Subir al salón', rect: [40, 200, 200, 330], walk: [200, 630],
-        exit: { to: 'salon', at: [840, 630] },
+        exit: { to: 'salon', at: [620, 655] },
       },
       {
         id: 'caldera', name: 'Caldera', rect: [370, 230, 240, 300], walk: [490, 640],
