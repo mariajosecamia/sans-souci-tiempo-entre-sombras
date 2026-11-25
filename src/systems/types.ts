@@ -60,6 +60,8 @@ export interface Hotspot {
   exit?: { to: string; at: Pt; when?: (s: GameState) => boolean; locked?: Action };
   prop?: string;                              // objeto ilustrado independiente
   npc?: string;                               // personaje dibujado
+  /** Dónde se apoya el personaje pintado: [x de su centro, y de sus pies, escala relativa] (p. ej. sentada en un sillón). */
+  npcAt?: [number, number, number];
   depth?: number;
 }
 

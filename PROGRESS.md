@@ -33,3 +33,10 @@ Ale eligió la fachada en abandono pintada como referencia de todo el juego. Los
 - Mejorar el dibujo de Elena y hoja de personaje maestra.
 - Ampliar hacia 22 escenas y 15 acertijos: usina, teléfono, túnel, pararrayos, las tres velas de la biblioteca, la cámara como mecánica.
 - Transiciones de capítulo ilustradas.
+
+### QA jugando (25/11)
+- Perspectiva: la escala de los personajes va de `scale[1]` (fondo, y=`scale[0]`) a `scale[3]` (adelante, y=`scale[2]`). Escalas revisadas sala por sala con superposiciones en PIL (salón, hall, corredor y jardín estaban chicos frente a los muebles).
+- Doña Mercedes sentada en el sillón pintado (`npcAt` en el hotspot: x, y de los pies y escala relativa).
+- Tomar/usar algo chico: Elena camina hasta el costado del objeto (`reachPoint`); se agacha si está abajo y estira la mano si está alto.
+- Mirar: Elena hace el gesto de examinar.
+- Nubes: `tools/skydrift.py` pinta una tira de nubes con los colores del cielo de cada lámina; se mueven más rápido y más visibles.

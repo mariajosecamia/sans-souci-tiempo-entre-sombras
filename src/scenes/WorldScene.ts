@@ -66,7 +66,7 @@ export class WorldScene extends Phaser.Scene {
   /** Hacia dónde mira Elena: de perfil, de espaldas (hacia el fondo) o de frente. */
   private dir: 'side' | 'back' | 'front' = 'side';
   private stepFrames = new Set<number>([0, 5]);
-  private targetY = 0;
+  private reachHigh = false;
 
   private elenaAnims(): void {
     if (!this.textures.exists('elena-p')) return;
@@ -110,12 +110,12 @@ export class WorldScene extends Phaser.Scene {
     const row = WorldScene.NPC_ROW[key];
     if (row && this.anims.exists(`${key}-p`)) {
       const want = face === 'left' ? -1 : face === 'right' ? 1 : row[1];
-      const sp = this.add.sprite(x, y, 'npcs-p', row[0] * 2).setOrigin(0.5, ELENA_FOOT).setScale((this.roomScale() * 300 * 0.86) / ELENA_FIG_H).setFlipX(want !== row[1]);
+      const sp = this.add.sprite(x, y, 'npcs-p', row[0] * 2).setOrigin(0.5, ELENA_FOOT).setScale((this.roomScale(y) * 300 * 0.86) / ELENA_FIG_H).setFlipX(want !== row[1]);
       sp.play({ key: `${key}-p`, startFrame: Math.floor(Math.random() * 12) });
       return sp;
     }
     const sh = this.sheets[key];
-    const sp = this.add.sprite(x, y, key, 0).setOrigin(0.45, FOOT_Y / FRAME_H).setScale(this.roomScale() / sh.res);
+    const sp = this.add.sprite(x, y, key, 0).setOrigin(0.45, FOOT_Y / FRAME_H).setScale(this.roomScale(y) / sh.res);
     sp.play(`${key}-${key === 'mercedes' ? 'sit' : 'idle'}`);
     // los dibujados por código miran a la derecha
     sp.setFlipX(face === 'left' || (!face && key !== 'isabel'));
@@ -257,7 +257,7 @@ export class WorldScene extends Phaser.Scene {
         this.walkTo(p.worldX, p.worldY);
         return;
       }
-      if (this.ui.selected) { const item = this.ui.selected; this.ui.select(null); await this.approach(h); this.chain(interact(h, 'use', this.s, item)); return; }
+      if (this.ui.selected) { const item = this.ui.selected; this.ui.select(null); await this.approach(h, 'use'); this.chain(interact(h, 'use', this.s, item)); return; }
       if (right) { this.chain(interact(h, 'look', this.s)); return; }
       const verbs = verbsFor(h);
       if (h.exit && (verbs.length === 0 || verbs.every((v) => v === 'look'))) {
@@ -284,15 +284,44 @@ export class WorldScene extends Phaser.Scene {
   }
 
   private async approach(h: Hotspot, verb?: Verb): Promise<void> {
-    if (verb === 'look' && !h.exit) { this.face(h.rect[0] + h.rect[2] / 2); return; }
-    const [x, y] = h.walk ?? [h.rect[0] + h.rect[2] / 2, h.rect[1] + h.rect[3]];
+    if (verb === 'look' && !h.exit) {
+      this.face(h.rect[0] + h.rect[2] / 2);
+      // mirar algo: se detiene a observarlo (sin frenar el texto)
+      if (this.painted && !h.npc && this.anims.exists('elena-examine')) {
+        this.player.play('elena-examine');
+        this.player.once('animationcomplete', (an: Phaser.Animations.Animation) => { if (an.key === 'elena-examine' && !this.moving) this.player.play('elena-idle'); });
+      }
+      return;
+    }
+    const [x, y] = this.reachPoint(h, verb) ?? h.walk ?? [h.rect[0] + h.rect[2] / 2, h.rect[1] + h.rect[3]];
     await this.walkTo(x, y);
-    this.targetY = h.rect[1] + h.rect[3] / 2;
+    // ¿la mano tiene que subir (estirarse) o bajar (agacharse)? según la altura del objeto respecto de sus pies
+    this.reachHigh = this.player.y - (h.rect[1] + h.rect[3] * 0.55) > this.elenaH() * 0.4;
     if (h.face) this.facing = h.face === 'left' ? -1 : 1;
     else this.face(h.rect[0] + h.rect[2] / 2);
     this.player.setFlipX(this.facing < 0);
     // frente a un objeto o una persona se pone de perfil; ante una puerta queda de espaldas
     if (!h.exit && this.dir !== 'side') { this.dir = 'side'; this.player.play('elena-idle', true); }
+  }
+
+  /**
+   * Para tomar o usar algo chico, Elena se para al lado del objeto (no a metros): si está en el piso,
+   * con los pies a la altura de su base; si está sobre un mueble, frente al mueble, a la distancia de un brazo.
+   */
+  private reachPoint(h: Hotspot, verb?: Verb): Pt | null {
+    if (h.exit || h.npc || !this.painted) return null;
+    if (verb !== 'take' && verb !== 'use') return null;
+    const [rx, ry, rw, rh] = h.rect;
+    if (rw > 220 || rh > 260) return null;
+    const cx = rx + rw / 2, base = ry + rh;
+    const onFloor = inPoly([cx, base + 4], this.room.floor);
+    const fy = onFloor ? base + 4 : (h.walk?.[1] ?? base + 30);
+    const arm = this.elenaH(fy) * 0.2 + rw * 0.35;
+    const side = this.player.x <= cx ? -1 : 1;
+    let pt = clampToPoly(this.room.floor, [cx + side * arm, fy]);
+    // si de ese lado no hay piso (pared, mueble), probar del otro
+    if (Math.abs(pt[0] - (cx + side * arm)) > 30) pt = clampToPoly(this.room.floor, [cx - side * arm, fy]);
+    return pt;
   }
 
   private face(x: number): void {
@@ -326,7 +355,7 @@ export class WorldScene extends Phaser.Scene {
       const d = Math.hypot(dx, dy);
       const step = (SPEED * this.roomScale() * dt) / 1000;
       if (d <= step) {
-        this.player.setPosition(tx, ty);
+        this.player.setPosition(tx, ty).setScale(this.playerScale());
         const r = this.moving.resolve;
         this.moving = undefined;
         this.player.play(this.idleKey(), true);
@@ -335,6 +364,7 @@ export class WorldScene extends Phaser.Scene {
         // en diagonal hacia el fondo se camina un poco más lento: la animación se ajusta para no patinar
         this.player.x += (dx / d) * step;
         this.player.y += (dy / d) * step;
+        this.player.setScale(this.playerScale());
         this.player.anims.timeScale = Math.max(0.6, Math.abs(dx / d)) * 1 + Math.abs(dy / d) * 0.6;
         const f = Number(this.player.frame.name);
         if (this.stepFrames.has(f) && f !== this.lastStep) { audio.step(this.surface()); this.lastStep = f; }
@@ -365,7 +395,7 @@ export class WorldScene extends Phaser.Scene {
     const pos = at ?? this.s.pos ?? this.room.spawn;
     const [px, py] = clampToPoly(this.room.floor, pos);
     if (!this.titleMode) {
-      this.player.setPosition(px, py).setDepth(py).setVisible(true);
+      this.player.setPosition(px, py).setDepth(py).setVisible(true).setScale(this.playerScale());
       this.player.play('elena-idle');
     }
     const cam = this.cameras.main;
@@ -412,7 +442,17 @@ export class WorldScene extends Phaser.Scene {
   }
 
   /** Escala del personaje en esta sala (las salas pintadas tienen su propia escala). */
-  private roomScale(): number { return (this.room?.scale?.[1] ?? 0.86) / 0.86; }
+  /** Escala del personaje a la altura y del piso: más chico al fondo, más grande adelante (perspectiva de la lámina). */
+  private roomScale(y?: number): number {
+    const sc = this.room?.scale;
+    if (!sc) return 1;
+    const yy = y ?? this.player?.y ?? sc[2];
+    const k = sc[2] === sc[0] ? 1 : Phaser.Math.Clamp((yy - sc[0]) / (sc[2] - sc[0]), 0, 1.15);
+    return (sc[1] + (sc[3] - sc[1]) * k) / 0.86;
+  }
+
+  /** Alto de Elena parada, en píxeles del mundo, a la altura y del piso. */
+  private elenaH(y?: number): number { return this.roomScale(y) * 300 * 0.86; }
 
   /** Lo que se mueve sobre una pintura: llamas, faroles, fuego, lluvia en los vidrios, cortinas, hojas. */
   private plateFx(plate: Plate, pk: string, sc: number): void {
@@ -481,8 +521,9 @@ export class WorldScene extends Phaser.Scene {
       if (plate.sky && this.textures.exists(pk + '-clouds') && this.textures.exists(pk + '-fg')) {
         // nubes que pasan detrás de la casa y los árboles
         const ch = (this.textures.get(pk + '-clouds').getSourceImage() as HTMLImageElement).height;
-        for (const [speed, alpha, dy, flip] of [[6, 0.55, 0, false], [11, 0.35, 18, true]] as [number, number, number, boolean][]) {
+        for (const [speed, alpha, dy, flip] of [[14, 0.9, 0, false], [26, 0.55, 22, false]] as [number, number, number, boolean][]) {
           const clouds = this.add.tileSprite(0, dy, this.room.width, ch, pk + '-clouds').setOrigin(0).setDepth(-19.5).setAlpha(alpha).setFlipX(flip);
+          clouds.tilePositionX = dy * 37;
           if (!this.opts.reduceMotion) this.clouds.push({ spr: clouds, speed });
           this.layerObjs.push(clouds);
         }
@@ -578,7 +619,9 @@ export class WorldScene extends Phaser.Scene {
         }
         // h.face es hacia dónde mira Elena al hablarle: el personaje mira al revés
         const npcFace = h.face === 'left' ? 'right' : h.face === 'right' ? 'left' : undefined;
-        const sp = this.npcSprite(key, x + w / 2, y + hh, npcFace).setDepth(y + hh);
+        const at = this.painted ? h.npcAt : undefined;
+        const sp = this.npcSprite(key, at?.[0] ?? x + w / 2, at?.[1] ?? y + hh, npcFace).setDepth(y + hh);
+        if (at) sp.setScale(sp.scaleX * at[2], sp.scaleY * at[2]);
         if (h.npc === 'rosa_ink') { sp.setTint(0x333333); this.tweens.add({ targets: sp, x: sp.x + 12, duration: 700, yoyo: true, repeat: -1, ease: 'Sine.inOut' }); }
         if (h.npc === 'isabel') { sp.setAlpha(0.72); this.tweens.add({ targets: sp, alpha: 0.45, duration: 2000, yoyo: true, repeat: -1 }); }
         if (era === 'sombras' && h.npc !== 'isabel') sp.setTint(0x9a9690);
@@ -757,7 +800,7 @@ export class WorldScene extends Phaser.Scene {
 
   private playAnim(a: string): Promise<void> {
     // tomar algo alto: estira la mano; algo bajo: se agacha
-    const key = `elena-${this.painted && a === 'pickup' && this.targetY < 470 ? 'take' : a}`;
+    const key = `elena-${this.painted && a === 'pickup' && this.reachHigh ? 'take' : a}`;
     this.dir = 'side';
     if (!this.anims.exists(key)) return Promise.resolve();
     return new Promise((r) => {

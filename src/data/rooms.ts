@@ -41,7 +41,7 @@ export const ROOMS: Record<string, RoomDef> = {
     id: 'entrada', name: 'El portón', width: 1583, outdoor: true, ambience: 'rain-out',
     // Coordenadas sobre la ilustración pintada (public/art/entrada-*.webp, 1583×720).
     floor: [[30, 625], [1550, 600], [1570, 712], [15, 712]],
-    scale: [600, 0.95, 712, 0.95],
+    scale: [600, 0.9, 712, 1.02],
     spawn: [620, 670],
     onEnter: (s) => (flag(s, 'introDone') ? [] : [
       { t: 'flag', k: 'introDone' },
@@ -96,7 +96,7 @@ export const ROOMS: Record<string, RoomDef> = {
   jardin: {
     id: 'jardin', name: 'Jardín y fachada', width: 1765, outdoor: true, ambience: 'rain-out',
     floor: [[20, 608], [1420, 608], [1440, 658], [1745, 668], [1750, 712], [15, 712]],
-    scale: [608, 0.48, 712, 0.48],
+    scale: [608, 0.38, 712, 0.56],
     spawn: [80, 670],
     fracture: quinqueLit,
     hotspots: [
@@ -160,7 +160,7 @@ export const ROOMS: Record<string, RoomDef> = {
     id: 'invernadero', name: 'Invernadero', width: 1280, ambience: 'greenhouse',
     // Coordenadas sobre la ilustración pintada (public/art/invernadero-*.webp, 1279×720).
     floor: [[25, 640], [1270, 632], [1279, 716], [0, 716]],
-    scale: [632, 1.0, 716, 1.0],
+    scale: [632, 0.95, 716, 1.05],
     spawn: [170, 685],
     fracture: quinqueLit,
     hotspots: [
@@ -206,7 +206,7 @@ export const ROOMS: Record<string, RoomDef> = {
     id: 'hall', name: 'Hall principal', width: 1764, ambience: 'house',
     // Coordenadas sobre la ilustración pintada (public/art/hall-*.webp, 1764×720).
     floor: [[170, 565], [1210, 565], [1600, 615], [1745, 640], [1750, 712], [15, 712], [60, 640]],
-    scale: [565, 0.74, 712, 0.74],
+    scale: [565, 0.72, 712, 0.95],
     spawn: [130, 670],
     fracture: quinqueLit,
     onEnter: (s) => (flag(s, 'hallSeen') ? [] : [
@@ -316,11 +316,11 @@ export const ROOMS: Record<string, RoomDef> = {
     id: 'salon', name: 'Salón', width: 1582, ambience: 'house', forceEra: '1920',
     // Coordenadas sobre la ilustración pintada (public/art/salon-1920.webp, 1582×720).
     floor: [[340, 600], [1450, 585], [1570, 600], [1575, 712], [300, 712], [330, 660]],
-    scale: [585, 0.86, 712, 0.86],
+    scale: [585, 1.0, 712, 1.3],
     spawn: [1480, 660],
     hotspots: [
       {
-        id: 'mercedes', name: 'Doña Mercedes', rect: [90, 370, 190, 270], walk: [420, 680], face: 'left', npc: 'mercedes',
+        id: 'mercedes', name: 'Doña Mercedes', rect: [150, 370, 200, 280], walk: [440, 680], face: 'left', npc: 'mercedes', npcAt: [258, 648, 0.95],
         look: [say('Una mujer pequeña, de luto antiguo, sentada muy derecha. Tiene el pelo blanco y las manos ocupadas en nada.')],
         talk: [{ t: 'dialog', id: 'mercedes' }],
       },
@@ -367,7 +367,7 @@ export const ROOMS: Record<string, RoomDef> = {
     id: 'biblioteca', name: 'Biblioteca', width: 1583, ambience: 'house',
     // Coordenadas sobre la ilustración pintada (public/art/biblioteca-*.webp, 1583×720).
     floor: [[90, 610], [1560, 610], [1575, 712], [80, 712]],
-    scale: [610, 1.05, 712, 1.05],
+    scale: [610, 1.0, 712, 1.1],
     spawn: [170, 680],
     fracture: (s) => quinqueLit(s),
     hotspots: [
@@ -484,7 +484,7 @@ export const ROOMS: Record<string, RoomDef> = {
     id: 'corredor', name: 'Corredor de los retratos', width: 1800, ambience: 'house',
     // Coordenadas sobre la ilustración pintada (public/art/corredor-*.webp, 1800×720).
     floor: [[250, 615], [1760, 615], [1790, 712], [240, 712]],
-    scale: [615, 0.98, 712, 0.98],
+    scale: [615, 1.35, 712, 1.45],
     spawn: [320, 680],
     fracture: quinqueLit,
     onEnter: (s) => (flag(s, 'stairDoorOpen') ? [] : [
@@ -529,7 +529,7 @@ export const ROOMS: Record<string, RoomDef> = {
     id: 'infantil', name: 'Cuarto de Isabel', width: 1280, ambience: 'house',
     // Coordenadas sobre la ilustración pintada (public/art/infantil-*.webp, 1279×720).
     floor: [[95, 652], [560, 615], [1275, 625], [1279, 716], [40, 716]],
-    scale: [615, 1.2, 716, 1.2],
+    scale: [615, 1.05, 716, 1.18],
     spawn: [170, 690],
     fracture: quinqueLit,
     hotspots: [
@@ -599,7 +599,7 @@ export const ROOMS: Record<string, RoomDef> = {
     id: 'sotano', name: 'Sótano', width: 1583, ambience: 'basement',
     // Coordenadas sobre la ilustración pintada (public/art/sotano-*.webp, 1583×720).
     floor: [[335, 612], [1555, 600], [1583, 716], [285, 716], [300, 660]],
-    scale: [600, 0.98, 716, 0.98],
+    scale: [600, 0.92, 716, 1.02],
     spawn: [345, 672],
     fracture: quinqueLit,
     onEnter: (s) => (flag(s, 'sotanoSeen') ? [] : [
@@ -652,7 +652,7 @@ export const ROOMS: Record<string, RoomDef> = {
     id: 'reloj', name: 'La sala del reloj', width: 1582, ambience: 'void', forceEra: 'sombras',
     // Coordenadas sobre la ilustración pintada (public/art/reloj-sombras.webp, 1582×720).
     floor: [[40, 645], [1520, 635], [1582, 716], [0, 716]],
-    scale: [635, 0.98, 716, 0.98],
+    scale: [635, 0.95, 716, 1.02],
     spawn: [300, 688],
     onEnter: (s) => (flag(s, 'enteredVoid') ? [] : [
       { t: 'flag', k: 'enteredVoid' }, { t: 'event', id: 'void_intro' },
