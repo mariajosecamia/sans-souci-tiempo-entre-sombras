@@ -440,7 +440,17 @@ export class WorldScene extends Phaser.Scene {
   }
 
   /** Carga (una sola vez) las ilustraciones pintadas de una sala. */
-  private ensurePlates(id: string): Promise<void> {
+  private async ensurePlates(id: string): Promise<void> {
+    // si la red falla un momento, reintenta: nunca se muestra el respaldo dibujado por código en lugar de la pintura
+    for (let i = 0; i < 4; i++) {
+      await this.loadPlates(id);
+      const plates = PAINTED[id];
+      if (!plates || Object.keys(plates).every((era) => this.textures.exists(plateKey(id, era as Era)))) return;
+      await new Promise((r) => setTimeout(r, 600 * (i + 1)));
+    }
+  }
+
+  private loadPlates(id: string): Promise<void> {
     const plates = PAINTED[id];
     if (!plates) return Promise.resolve();
     const missing = (Object.entries(plates) as [Era, { src: string }][]).filter(([era]) => !this.textures.exists(plateKey(id, era)));
@@ -460,7 +470,6 @@ export class WorldScene extends Phaser.Scene {
         for (const [hid, ip] of Object.entries(pl.inPaint ?? {})) if (ip.patch) this.load.image(plateKey(id, era) + '-patch-' + hid, ip.patch);
       }
       this.load.once('complete', () => res());
-      this.load.once('loaderror', () => res());
       this.load.start();
     });
   }
