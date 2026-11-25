@@ -976,9 +976,12 @@ export class WorldScene extends Phaser.Scene {
     this.cameras.main.stopFollow();
     this.s.era = E.era;
     this.room = ROOMS[E.room];
+    // la lámina pintada de la sala del final (si no se había cargado todavía)
+    await this.ensurePlates(E.room);
     this.drawRoom();
     this.player.setVisible(false);
-    this.cameras.main.setScroll(E.scroll, 0);
+    this.cameras.main.setBounds(0, 0, this.room.width, 720);
+    this.cameras.main.setScroll(Math.min(E.scroll, Math.max(0, this.room.width - 1280)), 0);
     audio.ambience(this.room.ambience);
     audio.startMusic(E.mood);
     await this.fadeIn(2000);
