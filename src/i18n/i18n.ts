@@ -10,7 +10,8 @@ function initial(): Lang {
     const v = localStorage.getItem(KEY);
     if (v === 'es' || v === 'en') return v;
   } catch { /* sin almacenamiento */ }
-  try { return typeof navigator !== 'undefined' && /^es/i.test(navigator.language) ? 'es' : (typeof navigator !== 'undefined' ? 'en' : 'es'); } catch { return 'es'; }
+  // el juego está escrito en español: se arranca en español y el inglés se elige en el menú
+  return 'es';
 }
 
 let lang: Lang = initial();
