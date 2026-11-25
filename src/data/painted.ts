@@ -39,7 +39,7 @@ export const PAINTED: Record<string, Partial<Record<Era, Plate>>> = {
     sombras: { src: 'art/jardin-sombras.webp', sky: true, veg: true, tint: 0xd8d4cc },
   },
   hall: {
-    '1920': { src: 'art/hall-1920.webp', tint: 0xe8c9a0, fx: [...candles([[797, 102], [832, 88], [937, 88], [975, 102], [1137, 405], [1153, 395], [1172, 405]]), { k: 'window', x: 200, y: 25, w: 130, h: 455 }, { k: 'lamp', x: 885, y: 150, r: 160 }] },
+    '1920': { src: 'art/hall-1920.webp', tint: 0xe8c9a0, fx: [...candles([[797, 102], [832, 88], [937, 88], [975, 102], [1137, 405], [1153, 395], [1172, 405]]), { k: 'window', x: 190, y: 36, w: 105, h: 448 }, { k: 'fire', x: 418, y: 465, w: 90, h: 80 }, { k: 'lamp', x: 885, y: 150, r: 160 }] },
     abandono: { src: 'art/hall-abandono.webp', tint: 0xb9b6a2 },
     sombras: { src: 'art/hall-sombras.webp', tint: 0xd8d4cc },
   },
