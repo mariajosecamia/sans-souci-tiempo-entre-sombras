@@ -103,8 +103,10 @@ export class WorldScene extends Phaser.Scene {
   private npcAnims(): void {
     if (!this.textures.exists('npcs-p')) return;
     for (const [k, [row]] of Object.entries(WorldScene.NPC_ROW)) {
-      const a = row * 2, b = a + 1;
+      const a = row * 3, b = a + 1, c = a + 2;
       this.anims.create({ key: `${k}-p`, frames: [...Array(16).fill(a), b].map((f) => ({ key: 'npcs-p', frame: f })), frameRate: 6, repeat: -1, delay: Math.random() * 1500 });
+      // hablando: la boca se abre y se cierra, con algún parpadeo
+      this.anims.create({ key: `${k}-talk-p`, frames: [a, c, c, a, c, a, a, c, b, c].map((f) => ({ key: 'npcs-p', frame: f })), frameRate: 7, repeat: -1 });
     }
   }
 
@@ -113,7 +115,7 @@ export class WorldScene extends Phaser.Scene {
     const row = WorldScene.NPC_ROW[key];
     if (row && this.anims.exists(`${key}-p`)) {
       const want = face === 'left' ? -1 : face === 'right' ? 1 : row[1];
-      const sp = this.add.sprite(x, y, 'npcs-p', row[0] * 2).setOrigin(0.5, ELENA_FOOT).setScale((this.roomScale(y) * 300 * 0.86) / ELENA_FIG_H).setFlipX(want !== row[1]);
+      const sp = this.add.sprite(x, y, 'npcs-p', row[0] * 3).setOrigin(0.5, ELENA_FOOT).setScale((this.roomScale(y) * 300 * 0.86) / ELENA_FIG_H).setFlipX(want !== row[1]);
       sp.play({ key: `${key}-p`, startFrame: Math.floor(Math.random() * 12) });
       return sp;
     }
@@ -719,6 +721,15 @@ export class WorldScene extends Phaser.Scene {
     this.tweens.add({ targets: sp, angle: { from: -0.5, to: 0.6 }, duration: 3800 + Math.random() * 1500, yoyo: true, repeat: -1, ease: 'Sine.inOut', delay: Math.random() * 2000 });
   }
 
+  /** Mientras un personaje dice su línea mueve la boca y acompaña con el cuerpo; al terminar vuelve al reposo. */
+  private talking(who: string, on: boolean): void {
+    if (who === 'elena') return;
+    const sp = this.npcs.find((n) => n.getData('who') === who && n.texture.key === 'npcs-p');
+    if (!sp) return;
+    if (on) { this.nod(who); if (this.anims.exists(`${who}-talk-p`)) sp.play(`${who}-talk-p`); }
+    else if (this.anims.exists(`${who}-p`)) sp.play(`${who}-p`);
+  }
+
   /** Quien habla acompaña con el cuerpo: un leve gesto de cabeza y hombros mientras dice su línea. */
   private nod(who: string): void {
     if (this.opts.reduceMotion) return;
@@ -867,7 +878,7 @@ export class WorldScene extends Phaser.Scene {
   private async runEffect(e: Effect): Promise<void> {
     const ui = this.ui;
     switch (e.t) {
-      case 'say': if (e.who && e.who !== 'elena') this.nod(e.who); await ui.say(e.who ?? 'elena', e.text, this.opts); break;
+      case 'say': { const w = e.who ?? 'elena'; this.talking(w, true); await ui.say(w, e.text, this.opts); this.talking(w, false); break; }
       case 'dialog': await this.runDialog(e.id); break;
       case 'give': await this.handover(e.item, true); applyEffect(this.s, e); ui.renderInventory(this.s); ui.toast(`${L('Guardé en el estuche', 'Put in my satchel')}: ${t(ITEMS[e.item]?.name ?? e.item)}`); break;
       case 'take': await this.handover(e.item, false); applyEffect(this.s, e); ui.renderInventory(this.s); break;
@@ -911,7 +922,7 @@ export class WorldScene extends Phaser.Scene {
     while (nodeId && guard++ < 60) {
       const node: typeof d.nodes[string] = d.nodes[nodeId];
       if (!node) break;
-      for (const [who, text] of node.lines) { if (who !== 'elena') this.nod(who); await this.ui.say(who, text, this.opts); }
+      for (const [who, text] of node.lines) { this.talking(who, true); await this.ui.say(who, text, this.opts); this.talking(who, false); }
       if (node.effects) await this.runEffects(node.effects);
       if (node.options) {
         const opts = node.options.filter((o) => (!o.when || o.when(this.s)) && (!o.onceFlag || !this.s.flags[o.onceFlag]));

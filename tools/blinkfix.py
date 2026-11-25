@@ -1,7 +1,7 @@
 # Parpadeo sin saltos: el cuadro de ojos cerrados se arma sobre el de reposo y sólo cambia la cara.
 # Uso (después de elena-atlas.py / npc-atlas.py):
 #   python3 tools/blinkfix.py public/art/elena.webp 7 "[(8,9),(10,11)]" public/art/elena.webp
-#   python3 tools/blinkfix.py public/art/npcs.webp 2 "[(0,1),(2,3),(4,5),(6,7)]" public/art/npcs.webp
+#   python3 tools/blinkfix.py public/art/npcs.webp 3 "[(0,1),(3,4),(6,7),(9,10)]" public/art/npcs.webp
 import numpy as np, sys
 from PIL import Image
 from scipy.ndimage import gaussian_filter, label, binary_dilation

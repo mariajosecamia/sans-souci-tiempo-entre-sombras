@@ -1,5 +1,6 @@
 # Hoja pintada de los personajes secundarios (arte/personajes/<id>-quieta-1/2.png, 512×768, pies en y≈740).
 # Uso: python3 tools/npc-atlas.py /mnt/project-files/sans-souci/arte/personajes
+# Cuadros por fila: quieta-1, quieta-2 (parpadeo), habla (si no hay, se repite quieta-1).
 # Salida: public/art/npcs.webp (cuadros de 384×576) y public/art/retratos/<id>.webp.
 import sys, os
 import numpy as np
@@ -7,11 +8,15 @@ from PIL import Image
 src = sys.argv[1]
 IDS = ['anselmo', 'rosa', 'mercedes', 'isabel']
 FW, FH = 384, 576
-sheet = Image.new('RGBA', (FW * 2, FH * len(IDS)), (0, 0, 0, 0))
+sheet = Image.new('RGBA', (FW * 3, FH * len(IDS)), (0, 0, 0, 0))
 for r, n in enumerate(IDS):
-    for c in range(2):
+    for c in range(3):
         f = os.path.join(src, '%s-sentada-%d.png' % (n, c + 1))
         if not os.path.exists(f): f = os.path.join(src, '%s-quieta-%d.png' % (n, c + 1))
+        if c == 2:
+            f = os.path.join(src, '%s-habla.png' % n)
+            if not os.path.exists(f): f = os.path.join(src, '%s-sentada-1.png' % n)
+            if not os.path.exists(f): f = os.path.join(src, '%s-quieta-1.png' % n)
         im = Image.open(f).convert('RGBA')
         a = np.array(im)
         a[:, :, 3] = np.where(a[:, :, 3] < 10, 0, a[:, :, 3])

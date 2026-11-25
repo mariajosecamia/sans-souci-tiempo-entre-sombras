@@ -21,7 +21,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
           cache: npm
       - run: npm ci
       - run: npm test
@@ -37,7 +37,20 @@ jobs:
     runs-on: ubuntu-latest
     environment:
       name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
+      url: ${{ steps.try1.outputs.page_url || steps.try2.outputs.page_url || steps.deployment.outputs.page_url }}
     steps:
+      # GitHub Pages a veces responde con error 500 pasajero: se reintenta dos veces antes de dar la publicación por fallida
+      - id: try1
+        continue-on-error: true
+        uses: actions/deploy-pages@v4
+      - if: steps.try1.outcome == 'failure'
+        run: sleep 45
+      - id: try2
+        if: steps.try1.outcome == 'failure'
+        continue-on-error: true
+        uses: actions/deploy-pages@v4
+      - if: steps.try1.outcome == 'failure' && steps.try2.outcome == 'failure'
+        run: sleep 90
       - id: deployment
+        if: steps.try1.outcome == 'failure' && steps.try2.outcome == 'failure'
         uses: actions/deploy-pages@v4
