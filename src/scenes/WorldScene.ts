@@ -794,7 +794,7 @@ export class WorldScene extends Phaser.Scene {
     // niebla baja que deriva
     if (era === 'abandono' || this.room.outdoor || this.room.id === 'sotano') {
       for (let i = 0; i < Math.ceil(W / 700) + 1; i++) {
-        const hz = this.add.image(i * 700 - 250, 720, 'haze').setOrigin(0, 1).setScale(1.1, 1).setDepth(9150).setAlpha(this.room.outdoor ? 0.42 : 0.34)
+        const hz = this.add.image(i * 700 - 250, 720, 'haze').setOrigin(0, 1).setScale(1.1, 1).setDepth(520).setAlpha(this.room.outdoor ? 0.42 : 0.34)
           .setTint(era === 'abandono' ? 0xc8d0b8 : 0xe8e0d0);
         this.tweens.add({ targets: hz, x: hz.x + 140, duration: 16000 + i * 3000, yoyo: true, repeat: -1, ease: 'Sine.inOut' });
         this.particles.push(hz as any);

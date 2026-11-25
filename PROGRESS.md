@@ -41,3 +41,8 @@ Ale eligió la fachada en abandono pintada como referencia de todo el juego. Los
 - Mirar: Elena hace el gesto de examinar.
 - Nubes: `tools/skydrift.py` pinta una tira de nubes con los colores del cielo de cada lámina; se mueven más rápido y más visibles.
 - Época de las sombras (sala del reloj y demás): los personajes se ven en tinta sepia sobre papel (`inkify`, ColorMatrix de WebGL); Rosa atrapada es tinta oscura y se balancea barriendo en vez de deslizarse; Isabel, casi papel.
+
+### QA 25/11 (recorrido completo en Chrome, build 415a11e)
+- Recorrido entero hasta el final "La placa" sin errores; Anselmo, Mercedes, Rosa, Isabel y entregas de objetos OK.
+- Niebla baja ahora detrás de los personajes (profundidad 520), así no les borra las piernas.
+- Nubes suavizadas para respetar los colores aprobados de la lámina (regla de Ale: no cambiar la estética).
