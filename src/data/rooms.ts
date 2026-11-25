@@ -232,7 +232,7 @@ export const ROOMS: Record<string, RoomDef> = {
           'Una escalera de roble con alfombra bordó que sube a la galería. Arriba, la puerta del rellano.',
           'Los peldaños están cubiertos de hojas y escombro. Arriba, la puerta del rellano ya no está: se cayó hacia adentro.'))],
         exit: {
-          to: 'corredor', at: [180, 640],
+          to: 'corredor', at: [320, 680],
           when: (s) => s.era === 'abandono' || flag(s, 'stairDoorOpen'),
           locked: [{ t: 'anim', anim: 'use' }, { t: 'sfx', id: 'door_stuck' }, say('Subo hasta el rellano. La puerta está hinchada de humedad y no cede ni un milímetro.'), { t: 'note', id: 'puerta_trabada' }],
         },
@@ -280,7 +280,7 @@ export const ROOMS: Record<string, RoomDef> = {
           llave_biblioteca: [{ t: 'anim', anim: 'use' }, { t: 'sfx', id: 'unlock' }, { t: 'take', item: 'llave_biblioteca' }, { t: 'flag', k: 'libraryOpen' }, say('Abierta.')],
         },
         exit: {
-          to: 'biblioteca', at: [200, 640], when: (s) => flag(s, 'libraryOpen'),
+          to: 'biblioteca', at: [170, 680], when: (s) => flag(s, 'libraryOpen'),
           locked: (s) => has(s, 'llave_biblioteca')
             ? [{ t: 'anim', anim: 'use' }, { t: 'sfx', id: 'unlock' }, { t: 'take', item: 'llave_biblioteca' }, { t: 'flag', k: 'libraryOpen' }, say('Abierta.'), { t: 'goto', room: 'biblioteca', at: [200, 640] }]
             : [{ t: 'sfx', id: 'door_stuck' }, say('Cerrada. La señora tendrá la llave.')],
@@ -342,45 +342,46 @@ export const ROOMS: Record<string, RoomDef> = {
 
   // =========================================================== BIBLIOTECA
   biblioteca: {
-    id: 'biblioteca', name: 'Biblioteca', width: 1600, ambience: 'house',
-    floor: [[60, 550], [1540, 550], [1570, 708], [30, 708]],
-    scale: [550, 0.86, 708, 0.86],
-    spawn: [200, 640],
+    id: 'biblioteca', name: 'Biblioteca', width: 1583, ambience: 'house',
+    // Coordenadas sobre la ilustración pintada (public/art/biblioteca-*.webp, 1583×720).
+    floor: [[90, 610], [1560, 610], [1575, 712], [80, 712]],
+    scale: [610, 1.05, 712, 1.05],
+    spawn: [170, 680],
     fracture: (s) => quinqueLit(s),
     hotspots: [
       {
-        id: 'estanterias', name: 'Estanterías', rect: [100, 110, 480, 360], walk: [340, 620],
+        id: 'estanterias', name: 'Estanterías', rect: [140, 60, 400, 520], walk: [340, 680],
         look: (s) => [say(byEra(s,
           'Miles de libros: botánica, relojería, astronomía, novelas francesas. Abajo a la izquierda hay un tramo tapiado con madera nueva.',
           'El tramo de la izquierda se derrumbó. Detrás de la madera tapiada había un nicho.'))],
       },
       {
-        id: 'nicho', name: 'Nicho', rect: [150, 320, 160, 150], walk: [240, 620], eras: ['abandono'], prop: 'nicho',
+        id: 'nicho', name: 'Nicho', rect: [150, 380, 160, 150], walk: [300, 680], eras: ['abandono'], prop: 'nicho',
         look: (s) => [say(has(s, 'diario_aurelio') ? 'El nicho está vacío ahora.' : 'Entre las tablas rotas, un libro de tapas de cuero.')],
         take: (s) => has(s, 'diario_aurelio') || flag(s, 'tookDiary') ? [say('Ya no hay nada.')] :
           [{ t: 'anim', anim: 'pickup' }, { t: 'give', item: 'diario_aurelio' }, { t: 'flag', k: 'tookDiary' }, { t: 'sfx', id: 'pickup' },
             { t: 'anim', anim: 'read' }, { t: 'doc', id: 'diario_aurelio' }, { t: 'note', id: 'hora' }],
       },
       {
-        id: 'ventanal', name: 'Ventanal', rect: [660, 100, 280, 350],
+        id: 'ventanal', name: 'Ventanal', rect: [700, 10, 250, 420],
         look: (s) => [say(byEra(s, 'El ventanal da al parque. La lluvia afloja.', 'Sin vidrios. La lluvia entra y forma un charco sobre la alfombra podrida. Huele a tierra.', 'Del otro lado no hay parque. Hay papel en blanco.'))],
       },
       {
-        id: 'globo', name: 'Globo terráqueo', rect: [260, 440, 140, 150], walk: [420, 640],
+        id: 'globo', name: 'Globo terráqueo', rect: [400, 370, 125, 200], walk: [470, 680],
         look: (s) => [say(byEra(s, 'Un globo terráqueo alemán. Alguien marcó Lieja con un alfiler.', 'El globo está partido al medio. Adentro anidaron pájaros.'))],
       },
       {
-        id: 'sillon', name: 'Sillón', rect: [500, 460, 160, 120], walk: [580, 640],
+        id: 'sillon', name: 'Sillón', rect: [520, 380, 180, 165], walk: [610, 680],
         look: (s) => [say(byEra(s, 'Un sillón de cuero gastado justo donde el respaldo toca la mano. Al lado, una manta de niño doblada.', 'El sillón es un esqueleto de resortes.'))],
       },
-      fragment('biblioteca', [560, 420, 50, 50], '1920', 'frag_biblioteca', (s) => flag(s, 'anomaly1')),
+      fragment('biblioteca', [745, 410, 50, 50], '1920', 'frag_biblioteca', (s) => flag(s, 'anomaly1')),
       {
-        id: 'escritorio', name: 'Escritorio', rect: [1060, 420, 320, 140], walk: [1220, 640],
+        id: 'escritorio', name: 'Escritorio', rect: [1020, 430, 470, 170], walk: [1250, 690],
         look: (s) => [say(byEra(s, 'Un escritorio de nogal. Ideal para trabajar, si hubiera luz.', 'El escritorio se hundió de un lado. La madera está blanda como pan mojado.'))],
       },
       {
-        id: 'candelabro_mesa', name: 'Candelabro del escritorio', rect: [1140, 330, 70, 90], walk: [1180, 640], prop: 'candelabro_mesa', eras: ['1920'],
-        look: [say('Un candelabro de bronce, sin vela. Hay restos de cera de muchas noches.')],
+        id: 'candelabro_mesa', name: 'Candelabro del escritorio', rect: [1130, 335, 70, 110], walk: [1160, 690], prop: 'candelabro_mesa', eras: ['1920'],
+        look: [say('Un candelabro de bronce. Las velas están consumidas hasta el cabo: hay cera de muchas noches. Le falta una vela entera.')],
         use: (s) => flag(s, 'anomaly1') ? [say('No pienso volver a hacer eso.')] : [say('Le falta una vela.')],
         useItem: {
           vela: [say('Primero tendría que encenderla.')],
@@ -393,7 +394,7 @@ export const ROOMS: Record<string, RoomDef> = {
         },
       },
       {
-        id: 'quinque', name: 'Quinqué', rect: [1240, 360, 60, 80], walk: [1240, 640], prop: 'quinque', eras: ['abandono'],
+        id: 'quinque', name: 'Quinqué', rect: [1130, 345, 55, 100], walk: [1160, 690], prop: 'quinque', eras: ['abandono'],
         when: (s) => !flag(s, 'tookQuinque'),
         look: [say('Sobre el escritorio podrido hay un quinqué de bronce, limpio, como si alguien lo hubiera dejado para mí.')],
         take: [{ t: 'anim', anim: 'pickup' }, { t: 'give', item: 'quinque' }, { t: 'flag', k: 'tookQuinque' }, { t: 'sfx', id: 'pickup' },
@@ -402,7 +403,7 @@ export const ROOMS: Record<string, RoomDef> = {
           say('Está seco. Si le consigo querosén…'), { t: 'note', id: 'quinque' }],
       },
       {
-        id: 'salida', name: 'Volver al hall', rect: [0, 240, 90, 320],
+        id: 'salida', name: 'Volver al hall', rect: [0, 115, 130, 540], walk: [150, 680],
         exit: {
           to: 'hall', at: [1650, 665],
           when: (s) => s.era === '1920' || flag(s, 'tookQuinque'),
@@ -458,10 +459,11 @@ export const ROOMS: Record<string, RoomDef> = {
 
   // =========================================================== CORREDOR SUPERIOR
   corredor: {
-    id: 'corredor', name: 'Corredor de los retratos', width: 1920, ambience: 'house',
-    floor: [[60, 550], [1860, 550], [1900, 708], [20, 708]],
-    scale: [550, 0.86, 708, 0.86],
-    spawn: [180, 640],
+    id: 'corredor', name: 'Corredor de los retratos', width: 1800, ambience: 'house',
+    // Coordenadas sobre la ilustración pintada (public/art/corredor-*.webp, 1800×720).
+    floor: [[250, 615], [1760, 615], [1790, 712], [240, 712]],
+    scale: [615, 0.98, 712, 0.98],
+    spawn: [320, 680],
     fracture: quinqueLit,
     onEnter: (s) => (flag(s, 'stairDoorOpen') ? [] : [
       { t: 'flag', k: 'stairDoorOpen' },
@@ -470,31 +472,31 @@ export const ROOMS: Record<string, RoomDef> = {
     ]),
     hotspots: [
       {
-        id: 'escalera', name: 'Bajar al hall', rect: [0, 240, 90, 320],
+        id: 'escalera', name: 'Bajar al hall', rect: [0, 330, 250, 370], walk: [320, 680],
         exit: { to: 'hall', at: [1450, 630] },
       },
       {
-        id: 'retrato1', name: 'Retrato', rect: [250, 150, 160, 210], walk: [330, 620],
-        look: (s) => [say(byEra(s, 'Un caballero de bigote, con un pie sobre una piedra: alguien que compró estas sierras.', 'La tela se despegó del marco y cuelga como una lengua.'))],
+        id: 'retrato1', name: 'Retrato', rect: [120, 105, 185, 280], walk: [260, 680],
+        look: (s) => [say(byEra(s, 'Una dama de perfil, de cuello alto y pelo recogido. Es el único retrato de la casa sin placa con el nombre.', 'La tela se despegó del marco y cuelga como una lengua. La cara de la dama quedó intacta.'))],
       },
       {
-        id: 'puerta_dormitorio', name: 'Dormitorio principal', rect: [540, 260, 110, 250], walk: [595, 600],
+        id: 'puerta_dormitorio', name: 'Dormitorio principal', rect: [400, 75, 275, 535], walk: [540, 680],
         look: [say('El dormitorio de Doña Mercedes.')],
         use: [{ t: 'sfx', id: 'door_stuck' }, say('Cerrado. No me corresponde.')],
       },
       {
-        id: 'retrato_familiar', name: 'Retrato de familia', rect: [860, 130, 300, 250], walk: [1010, 620],
+        id: 'retrato_familiar', name: 'Retrato de familia', rect: [790, 90, 400, 310], walk: [990, 680],
         look: (s) => [say(byEra(s,
-          'Aurelio, Mercedes, Isabel en el centro y, detrás, una mujer joven cuya cara fue raspada hasta la tela.',
-          'Moho por todas partes, menos en la cara raspada: ahí la tela está limpia, como recién hecha.'))],
+          'Aurelio, Mercedes e Isabel con un moño en el pelo. En el borde derecho la tela está doblada hacia atrás, como si hubieran tapado a alguien.',
+          'Moho por todas partes, menos en el borde doblado: ahí la tela está limpia, como recién hecha.'))],
       },
-      fragment('corredor', [1100, 230, 50, 50], 'abandono', 'frag_corredor'),
+      fragment('corredor', [1215, 300, 50, 50], 'abandono', 'frag_corredor'),
       {
-        id: 'puerta_infantil', name: 'Cuarto de Isabel', rect: [1290, 260, 110, 250], walk: [1345, 600],
+        id: 'puerta_infantil', name: 'Cuarto de Isabel', rect: [1300, 150, 215, 460], walk: [1405, 680],
         exit: { to: 'infantil', at: [190, 640] },
       },
       {
-        id: 'ventana', name: 'Ventana', rect: [1520, 110, 180, 330],
+        id: 'ventana', name: 'Ventana', rect: [1580, 20, 220, 600],
         look: (s) => [say(byEra(s, 'Desde acá se ve el invernadero, iluminado como una linterna.', 'El invernadero es una mancha verde, comido por la hiedra.'))],
       },
     ],
@@ -564,7 +566,7 @@ export const ROOMS: Record<string, RoomDef> = {
       },
       {
         id: 'salida', name: 'Volver al corredor', rect: [0, 240, 80, 320],
-        exit: { to: 'corredor', at: [1345, 620] },
+        exit: { to: 'corredor', at: [1405, 680] },
       },
     ],
   },

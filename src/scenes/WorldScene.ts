@@ -316,17 +316,68 @@ export class WorldScene extends Phaser.Scene {
   /** Escala del personaje en esta sala (las salas pintadas tienen su propia escala). */
   private roomScale(): number { return (this.room?.scale?.[1] ?? 0.86) / 0.86; }
 
+  /** Lo que se mueve sobre una pintura: llamas, faroles, fuego, lluvia en los vidrios, cortinas, hojas. */
+  private plateFx(plate: Plate, pk: string, sc: number): void {
+    const still = this.opts.reduceMotion, gl = this.game.renderer.type === Phaser.WEBGL;
+    const ox = plate.dx ?? 0, oy = plate.dy ?? 0;
+    const crop = (x: number, y: number, w: number, h: number, pipe: string, depth: number) => {
+      if (still || !gl) return;
+      const im = this.add.image(ox, oy, pk).setOrigin(0).setScale(sc).setDepth(depth);
+      im.setCrop((x - ox) / sc, (y - oy) / sc, w / sc, h / sc);
+      im.setPostPipeline(pipe);
+      this.layerObjs.push(im);
+    };
+    for (const f of plate.fx ?? []) {
+      if (f.k === 'candle') {
+        const g = this.add.image(f.x, f.y, 'glow').setBlendMode(Phaser.BlendModes.ADD).setDepth(9100).setScale(0.22).setAlpha(0.5).setTint(0xffc070);
+        if (!still) this.tweens.add({ targets: g, alpha: { from: 0.32, to: 0.62 }, scale: { from: 0.2, to: 0.25 }, duration: 80 + Math.random() * 140, yoyo: true, repeat: -1, ease: 'Sine.inOut' });
+        this.glows.push(g);
+      } else if (f.k === 'lamp') {
+        const g = this.add.image(f.x, f.y, 'glow').setBlendMode(Phaser.BlendModes.ADD).setDepth(9100).setScale(f.r / 128).setAlpha(0.28).setTint(0xffd090);
+        if (!still) this.tweens.add({ targets: g, alpha: { from: 0.2, to: 0.34 }, duration: 1800 + Math.random() * 900, yoyo: true, repeat: -1, ease: 'Sine.inOut' });
+        this.glows.push(g);
+      } else if (f.k === 'fire') {
+        crop(f.x, f.y, f.w, f.h, 'Heat', -17);
+        const g = this.add.image(f.x + f.w / 2, f.y + f.h * 0.7, 'glow').setBlendMode(Phaser.BlendModes.ADD).setDepth(9100).setScale(f.w / 70).setAlpha(0.4).setTint(0xff9a40);
+        if (!still) this.tweens.add({ targets: g, alpha: { from: 0.28, to: 0.55 }, scale: { from: f.w / 75, to: f.w / 62 }, duration: 120 + Math.random() * 160, yoyo: true, repeat: -1, ease: 'Sine.inOut' });
+        this.glows.push(g);
+        // chispas
+        if (!still) {
+          const sparks = this.add.particles(0, 0, 'mote', {
+            x: { min: f.x + f.w * 0.25, max: f.x + f.w * 0.75 }, y: f.y + f.h * 0.75, lifespan: 1400, speedY: { min: -70, max: -30 }, speedX: { min: -12, max: 12 },
+            scale: { start: 0.35, end: 0 }, alpha: { start: 0.9, end: 0 }, tint: 0xffb050, frequency: 260, blendMode: 'ADD',
+          }).setDepth(9150);
+          this.particles.push(sparks);
+        }
+      } else if (f.k === 'window') {
+        if (!still) {
+          const shape = this.make.graphics({}, false).fillRect(f.x, f.y, f.w, f.h);
+          const rain = this.add.particles(0, 0, 'raindrop', {
+            x: { min: f.x, max: f.x + f.w }, y: f.y - 10, lifespan: (f.h / 420) * 1000, speedY: { min: 360, max: 480 }, speedX: -20,
+            alpha: { min: 0.12, max: 0.3 }, scale: { min: 0.5, max: 0.8 }, quantity: 1, frequency: Math.max(12, 9000 / f.w),
+          }).setDepth(-16);
+          rain.setMask(shape.createGeometryMask());
+          this.particles.push(rain);
+        }
+      } else if (f.k === 'curtain') {
+        crop(f.x, f.y, f.w, f.h, 'Curtain', -17);
+      } else if (f.k === 'plants') {
+        crop(f.x, f.y, f.w, f.h, 'Sway', -17);
+      }
+    }
+  }
+
   drawRoom(): void {
     this.clearRoom();
     const era = eraOf(this.room, this.s);
     const plate = PAINTED[this.room.id]?.[era];
     if (plate && this.textures.exists(plateKey(this.room.id, era))) {
       // ilustración pintada: cubre la sala; encima van sólo los efectos que unifican (aire, polvo, papel)
-      const img = this.add.image(plate.dx ?? 0, plate.dy ?? 0, plateKey(this.room.id, era)).setOrigin(0).setDepth(-20);
+      const pk = plateKey(this.room.id, era);
+      const img = this.add.image(plate.dx ?? 0, plate.dy ?? 0, pk).setOrigin(0).setDepth(-20);
       const src = img.texture.getSourceImage() as HTMLImageElement;
       const sc = Math.max(this.room.width / src.width, 720 / src.height);
       img.setScale(sc);
-      const pk = plateKey(this.room.id, era);
       if (plate.sky && this.textures.exists(pk + '-clouds') && this.textures.exists(pk + '-fg')) {
         // nubes que pasan detrás de la casa y los árboles
         const ch = (this.textures.get(pk + '-clouds').getSourceImage() as HTMLImageElement).height;
@@ -345,6 +396,7 @@ export class WorldScene extends Phaser.Scene {
       }
       const vig = this.add.image(320, 180, 'vignette').setOrigin(0).setScrollFactor(0).setDisplaySize(1280, 720).setDepth(9800).setBlendMode(Phaser.BlendModes.MULTIPLY);
       this.layerObjs.push(img, vig);
+      this.plateFx(plate, pk, sc);
       if (plate.ambient) {
         const shade = this.add.rectangle(0, 0, this.room.width, 720, era === 'abandono' ? 0x7f8a80 : 0x7a6a5a, plate.ambient).setOrigin(0).setDepth(9000).setBlendMode(Phaser.BlendModes.MULTIPLY);
         this.layerObjs.push(shade);
