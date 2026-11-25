@@ -150,7 +150,7 @@ export const ROOMS: Record<string, RoomDef> = {
       },
       {
         id: 'salida_invernadero', name: 'Sendero al invernadero', rect: [1720, 560, 45, 160],
-        exit: { to: 'invernadero', at: [190, 640] },
+        exit: { to: 'invernadero', at: [170, 685] },
       },
     ],
   },
@@ -158,13 +158,14 @@ export const ROOMS: Record<string, RoomDef> = {
   // =========================================================== INVERNADERO
   invernadero: {
     id: 'invernadero', name: 'Invernadero', width: 1280, ambience: 'greenhouse',
-    floor: [[60, 560], [1220, 560], [1250, 708], [30, 708]],
-    scale: [560, 0.86, 708, 0.86],
-    spawn: [190, 640],
+    // Coordenadas sobre la ilustración pintada (public/art/invernadero-*.webp, 1279×720).
+    floor: [[25, 640], [1270, 632], [1279, 716], [0, 716]],
+    scale: [632, 1.0, 716, 1.0],
+    spawn: [170, 685],
     fracture: quinqueLit,
     hotspots: [
       {
-        id: 'anselmo', name: 'Anselmo', rect: [330, 330, 120, 290], walk: [520, 650], face: 'left', npc: 'anselmo', eras: ['1920'],
+        id: 'anselmo', name: 'Anselmo', rect: [400, 320, 130, 345], walk: [610, 685], face: 'left', npc: 'anselmo', eras: ['1920'],
         when: (s) => flag(s, 'gateOpen'),
         look: [say('Anselmo tapa los plantines con diarios viejos. Trabaja como si alguien lo estuviera cronometrando.')],
         talk: [{ t: 'dialog', id: 'anselmo' }],
@@ -173,24 +174,28 @@ export const ROOMS: Record<string, RoomDef> = {
         },
       },
       {
-        id: 'mesa', name: 'Mesa de trasplante', rect: [560, 430, 330, 130], walk: [720, 640],
+        id: 'mesa', name: 'Mesa de trasplante', rect: [560, 425, 350, 190], walk: [740, 690],
         look: (s) => [say(byEra(s, 'Macetas, tijeras, etiquetas con nombres en latín y, debajo, otros nombres en lápiz, de otra letra: "cola de zorro", "pasto de la sierra".', 'La mesa se partió. Un helecho creció a través de las macetas rotas.'))],
       },
       {
-        id: 'plantas', name: 'Plantas', rect: [920, 170, 330, 330],
+        id: 'regadera', name: 'Regadera', rect: [675, 350, 115, 92], walk: [740, 690],
+        look: (s) => [say(byEra(s, 'Una regadera de cobre, todavía tibia de la mano de Anselmo.', 'La misma regadera, verde de óxido. Nadie la movió en años.'))],
+      },
+      {
+        id: 'plantas', name: 'Plantas', rect: [1020, 20, 259, 600], walk: [1100, 695],
         look: (s) => [say(byEra(s, 'Helechos, camelias, un limonero que no da limones.', 'Las plantas ganaron. El techo de vidrio está cubierto de hiedra y la luz entra verde.'))],
       },
-      fragment('invernadero', [1010, 300, 60, 60], 'abandono', 'frag_invernadero'),
+      fragment('invernadero', [1000, 575, 60, 60], 'abandono', 'frag_invernadero'),
       {
-        id: 'querosen', name: 'Lata de querosén', rect: [1040, 560, 70, 80], walk: [1000, 660], prop: 'lata', eras: ['1920'],
+        id: 'querosen', name: 'Lata de querosén', rect: [983, 512, 92, 133], walk: [945, 690], prop: 'lata', eras: ['1920'],
         when: (s) => !flag(s, 'tookKerosene'),
-        look: [say('Una lata de querosén "Ancla", junto a la puerta.')],
+        look: [say('Una lata de querosén "Ancla", al lado de la maceta grande.')],
         take: (s) => (flag(s, 'askedKerosene') || flag(s, 'anomaly1'))
           ? [{ t: 'anim', anim: 'pickup' }, { t: 'give', item: 'querosen' }, { t: 'flag', k: 'tookKerosene' }, { t: 'sfx', id: 'pickup' }, say('Queda un resto. Alcanza.')]
           : [say('No tengo para qué cargar con eso. Todavía.')],
       },
       {
-        id: 'salida', name: 'Volver al jardín', rect: [0, 400, 80, 300],
+        id: 'salida', name: 'Volver al jardín', rect: [15, 95, 175, 565], walk: [150, 685],
         exit: { to: 'jardin', at: [1690, 690] },
       },
     ],
@@ -510,7 +515,7 @@ export const ROOMS: Record<string, RoomDef> = {
       fragment('corredor', [1215, 300, 50, 50], 'abandono', 'frag_corredor'),
       {
         id: 'puerta_infantil', name: 'Cuarto de Isabel', rect: [1300, 150, 215, 460], walk: [1405, 680],
-        exit: { to: 'infantil', at: [190, 640] },
+        exit: { to: 'infantil', at: [170, 690] },
       },
       {
         id: 'ventana', name: 'Ventana', rect: [1580, 20, 220, 600],
@@ -522,20 +527,21 @@ export const ROOMS: Record<string, RoomDef> = {
   // =========================================================== CUARTO INFANTIL
   infantil: {
     id: 'infantil', name: 'Cuarto de Isabel', width: 1280, ambience: 'house',
-    floor: [[60, 550], [1220, 550], [1250, 708], [30, 708]],
-    scale: [550, 0.86, 708, 0.86],
-    spawn: [190, 640],
+    // Coordenadas sobre la ilustración pintada (public/art/infantil-*.webp, 1279×720).
+    floor: [[95, 652], [560, 615], [1275, 625], [1279, 716], [40, 716]],
+    scale: [615, 1.2, 716, 1.2],
+    spawn: [170, 690],
     fracture: quinqueLit,
     hotspots: [
       {
-        id: 'cama', name: 'Cama', rect: [110, 380, 320, 200], walk: [300, 640],
+        id: 'cama', name: 'Cama', rect: [120, 265, 435, 375], walk: [330, 695],
         look: (s) => [say(byEra(s, 'Una cama chica, tendida con un cuidado de museo. Nadie durmió acá en once años.', 'El colchón es un nido. La cabecera de bronce se puso verde.'))],
       },
       {
-        id: 'teatro', name: 'Teatro de sombras', rect: [560, 320, 240, 210], walk: [680, 640], prop: 'teatro',
+        id: 'teatro', name: 'Teatro de sombras', rect: [620, 200, 210, 200], walk: [720, 690], prop: 'teatro',
         look: (s) => [say(flag(s, 'theatreSolved')
           ? 'Las figuritas quedaron en su lugar: luna, cuervo, llave.'
-          : byEra(s, 'Un teatrito de sombras con pantalla de papel aceitado. Hay cinco figuras de cartón negro: un sol, una luna, un cuervo, una llave y una casa.', 'Aplastado por una rama. Las figuras se deshicieron.'))],
+          : byEra(s, 'Un teatrito de sombras con pantalla de papel aceitado. Hay cinco figuras de cartón negro: un sol, una luna, un cuervo, una llave y una casa.', 'La pantalla se rasgó con la humedad. Las figuras se deshicieron.'))],
         use: (s) => {
           if (s.era !== '1920') return [say('Está roto en este tiempo.')];
           if (flag(s, 'theatreSolved')) return [say('Ya me mostró lo que tenía que mostrar.')];
@@ -548,11 +554,11 @@ export const ROOMS: Record<string, RoomDef> = {
         },
       },
       {
-        id: 'comoda', name: 'Cómoda', rect: [880, 420, 200, 150], walk: [980, 640],
+        id: 'comoda', name: 'Cómoda', rect: [930, 372, 330, 260], walk: [1060, 695],
         look: (s) => [say(byEra(s, 'Una cómoda blanca con flores pintadas. Encima, una caja de música.', 'La cómoda está hinchada. Los cajones no cierran.'))],
       },
       {
-        id: 'caja_musica', name: 'Caja de música', rect: [935, 380, 90, 50], walk: [980, 640], prop: 'caja_musica', eras: ['1920'],
+        id: 'caja_musica', name: 'Caja de música', rect: [1035, 238, 155, 132], walk: [1060, 695], prop: 'caja_musica', eras: ['1920'],
         look: (s) => [say(flag(s, 'musicboxPlayed') ? 'La tapa quedó abierta. La bailarina mira hacia la puerta.' : 'Una caja de música de nácar. Le falta la llave de cuerda.')],
         use: (s) => flag(s, 'musicboxPlayed') ? [say('No tengo valor de volver a darle cuerda.')] : [say('Sin la llave de cuerda no suena.')],
         useItem: {
@@ -568,7 +574,7 @@ export const ROOMS: Record<string, RoomDef> = {
         },
       },
       {
-        id: 'papel_tapiz', name: 'Papel tapiz', rect: [1090, 140, 150, 240], walk: [1120, 620],
+        id: 'papel_tapiz', name: 'Papel tapiz', rect: [1110, 30, 169, 320], walk: [1180, 695],
         look: (s) => [say(byEra(s, 'Papel tapiz con golondrinas. Impecable, salvo una esquina que alguien volvió a pegar con engrudo.', flag(s, 'tookDrawing') ? 'Detrás del papel despegado, el revoque desnudo.' : 'El papel se despegó con la humedad. Detrás asoma algo: un papel doblado, escondido entre el revoque y el tapiz.'))],
         take: (s) => s.era !== 'abandono' ? [say('No voy a arrancar el papel del cuarto de una niña muerta. En este tiempo, no.')] :
           flag(s, 'tookDrawing') ? [say('No queda nada.')] :
@@ -578,11 +584,11 @@ export const ROOMS: Record<string, RoomDef> = {
             [{ t: 'anim', anim: 'pickup' }, { t: 'give', item: 'dibujo_isabel' }, { t: 'flag', k: 'tookDrawing' }, { t: 'sfx', id: 'paper' }, { t: 'doc', id: 'dibujo_isabel' }, { t: 'note', id: 'dibujo' }],
       },
       {
-        id: 'ventana', name: 'Ventana', rect: [330, 90, 200, 240],
-        look: (s) => [say(byEra(s, 'Una rama de tilo roza el vidrio con la lluvia, como alguien que pide entrar.', 'La rama entró. Atravesó el vidrio y creció dentro del cuarto.'))],
+        id: 'ventana', name: 'Ventana', rect: [275, 15, 265, 220],
+        look: (s) => [say(byEra(s, 'Una rama de tilo roza el vidrio con la lluvia, como alguien que pide entrar.', 'La hiedra entró por los vidrios rotos y trepa por la pared, buscando la cama.'))],
       },
       {
-        id: 'salida', name: 'Volver al corredor', rect: [0, 240, 80, 320],
+        id: 'salida', name: 'Volver al corredor', rect: [0, 30, 95, 670], walk: [120, 695],
         exit: { to: 'corredor', at: [1405, 680] },
       },
     ],

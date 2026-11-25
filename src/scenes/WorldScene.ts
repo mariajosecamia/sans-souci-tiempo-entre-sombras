@@ -307,6 +307,7 @@ export class WorldScene extends Phaser.Scene {
         const base = pl.src.replace(/\.webp$/, '');
         if (pl.sky) { this.load.image(plateKey(id, era) + '-fg', base + '-fg.webp'); this.load.image(plateKey(id, era) + '-clouds', base + '-clouds.webp'); }
         if (pl.veg) this.load.image(plateKey(id, era) + '-veg', base + '-veg.webp');
+        for (const [hid, ip] of Object.entries(pl.inPaint ?? {})) if (ip.patch) this.load.image(plateKey(id, era) + '-patch-' + hid, ip.patch);
       }
       this.load.once('complete', () => res());
       this.load.once('loaderror', () => res());
@@ -397,6 +398,12 @@ export class WorldScene extends Phaser.Scene {
       }
       const vig = this.add.image(320, 180, 'vignette').setOrigin(0).setScrollFactor(0).setDisplaySize(1280, 720).setDepth(9800).setBlendMode(Phaser.BlendModes.MULTIPLY);
       this.layerObjs.push(img, vig);
+      // objetos pintados que ya se tomaron: se tapan con un retazo de la misma pintura
+      const vis = new Set(visibleHotspots(this.room.id, this.s).map((h) => h.id));
+      for (const [hid, ip] of Object.entries(plate.inPaint ?? {})) {
+        if (!ip.patch || vis.has(hid) || !this.textures.exists(pk + '-patch-' + hid)) continue;
+        this.layerObjs.push(this.add.image(ip.x * sc, ip.y * sc, pk + '-patch-' + hid).setOrigin(0).setScale(sc).setDepth(-17));
+      }
       this.plateFx(plate, pk, sc);
       if (plate.ambient) {
         const shade = this.add.rectangle(0, 0, this.room.width, 720, era === 'abandono' ? 0x7f8a80 : 0x7a6a5a, plate.ambient).setOrigin(0).setDepth(9000).setBlendMode(Phaser.BlendModes.MULTIPLY);
@@ -439,7 +446,8 @@ export class WorldScene extends Phaser.Scene {
   private spawnActors(era: Era): void {
     for (const h of visibleHotspots(this.room.id, this.s)) {
       const painted = !!PAINTED[this.room.id]?.[era] && this.textures.exists(plateKey(this.room.id, era));
-      if (h.prop && (!painted || OVERLAY_PROPS.has(h.prop))) {
+      const inPaint = !!PAINTED[this.room.id]?.[era]?.inPaint?.[h.id];
+      if (h.prop && (!painted || (OVERLAY_PROPS.has(h.prop) && !inPaint))) {
         const [x, y, w, hh] = h.rect;
         const cv = drawProp(h.prop, era, w, hh, this.res);
         if (cv) {

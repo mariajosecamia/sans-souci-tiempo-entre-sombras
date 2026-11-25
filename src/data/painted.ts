@@ -11,6 +11,9 @@ export interface Plate {
   veg?: boolean;
   /** Cosas que se mueven sobre la pintura (coordenadas de la sala). */
   fx?: Fx[];
+  /** Objetos que ya están pintados en la lámina (no se dibujan encima). Si se pueden tomar,
+   *  `patch` es un retazo de la misma pintura sin el objeto, que se pone cuando desaparece. */
+  inPaint?: Record<string, { patch?: string; x: number; y: number }>;
 }
 
 export type Fx =
@@ -54,6 +57,37 @@ export const PAINTED: Record<string, Partial<Record<Era, Plate>>> = {
     abandono: { src: 'art/corredor-abandono.webp', tint: 0xb9b6a2 },
     sombras: { src: 'art/corredor-sombras.webp', tint: 0xd8d4cc },
   },
+};
+
+PAINTED.invernadero = {
+  '1920': {
+    src: 'art/invernadero-1920.webp', tint: 0xe6c49c,
+    inPaint: { querosen: { patch: 'art/invernadero-1920-sinlata.webp', x: 976, y: 505 } },
+    fx: [{ k: 'window', x: 300, y: 95, w: 560, h: 320 }, { k: 'window', x: 860, y: 95, w: 150, h: 180 },
+      { k: 'plants', x: 205, y: 0, w: 420, h: 330 }, { k: 'plants', x: 1000, y: 0, w: 279, h: 470 }, { k: 'plants', x: 860, y: 70, w: 190, h: 170 },
+      { k: 'plants', x: 870, y: 260, w: 200, h: 170 }, { k: 'plants', x: 330, y: 300, w: 160, h: 320 }],
+  },
+  abandono: {
+    src: 'art/invernadero-abandono.webp', tint: 0xb9b6a2,
+    fx: [{ k: 'window', x: 300, y: 95, w: 700, h: 320 }, { k: 'plants', x: 200, y: 0, w: 320, h: 620 }, { k: 'plants', x: 1040, y: 60, w: 239, h: 580 }, { k: 'plants', x: 900, y: 290, w: 170, h: 150 }],
+  },
+  sombras: { src: 'art/invernadero-sombras.webp', tint: 0xd8d4cc, fx: [{ k: 'plants', x: 200, y: 0, w: 320, h: 620 }, { k: 'plants', x: 1040, y: 250, w: 239, h: 400 }] },
+};
+
+PAINTED.infantil = {
+  '1920': {
+    src: 'art/infantil-1920.webp', tint: 0xeac8a0,
+    inPaint: { teatro: { x: 0, y: 0 }, caja_musica: { x: 0, y: 0 } },
+    fx: [...candles([[846, 305]]), { k: 'lamp', x: 720, y: 320, r: 120 }, { k: 'window', x: 285, y: 20, w: 245, h: 190 },
+      { k: 'curtain', x: 210, y: 0, w: 75, h: 285 }, { k: 'curtain', x: 535, y: 0, w: 65, h: 295 }],
+  },
+  abandono: {
+    src: 'art/infantil-abandono.webp', tint: 0xb9b6a2,
+    inPaint: { teatro: { x: 0, y: 0 } },
+    fx: [{ k: 'window', x: 285, y: 20, w: 245, h: 190 }, { k: 'plants', x: 300, y: 0, w: 240, h: 400 },
+      { k: 'curtain', x: 210, y: 0, w: 85, h: 320 }, { k: 'curtain', x: 520, y: 0, w: 85, h: 330 }],
+  },
+  sombras: { src: 'art/infantil-sombras.webp', tint: 0xd8d4cc, inPaint: { teatro: { x: 0, y: 0 } }, fx: [...candles([[846, 300]])] },
 };
 
 export const plateKey = (room: string, era: Era) => `plate-${room}-${era}`;

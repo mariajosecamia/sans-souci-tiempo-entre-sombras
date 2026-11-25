@@ -83,7 +83,7 @@ export const DIALOGS: Record<string, Dialog> = {
       querosen: {
         lines: [
           ['anselmo', '¿Un quinqué? En esta casa hay luz eléctrica desde el año doce.'],
-          ['anselmo', '…Hay una lata de querosén junto a la puerta del invernadero. Llévesela. Y no me diga de dónde sacó ese quinqué.'],
+          ['anselmo', '…Hay una lata de querosén al fondo, al lado de la maceta grande. Llévesela. Y no me diga de dónde sacó ese quinqué.'],
         ],
         effects: [{ t: 'flag', k: 'askedKerosene' }],
         next: 'hub',
