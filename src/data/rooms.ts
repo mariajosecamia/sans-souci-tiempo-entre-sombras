@@ -85,7 +85,7 @@ export const ROOMS: Record<string, RoomDef> = {
       {
         id: 'puerta_principal', name: 'Puerta principal', rect: [795, 405, 140, 185], walk: [860, 640],
         look: (s) => [say(byEra(s, 'Roble con herrajes de bronce, bajo un arco de piedra. Arriba, un farol encendido.', 'La puerta cuelga de una sola bisagra. El arco está comido por la hiedra.'))],
-        exit: { to: 'hall', at: [180, 640] },
+        exit: { to: 'hall', at: [130, 670] },
       },
       {
         id: 'escalinata', name: 'Escalinata', rect: [225, 565, 275, 130], walk: [520, 680],
@@ -172,10 +172,11 @@ export const ROOMS: Record<string, RoomDef> = {
 
   // =========================================================== HALL
   hall: {
-    id: 'hall', name: 'Hall principal', width: 1920, ambience: 'house',
-    floor: [[60, 540], [1860, 540], [1900, 708], [20, 708]],
-    scale: [540, 0.86, 708, 0.86],
-    spawn: [200, 640],
+    id: 'hall', name: 'Hall principal', width: 1764, ambience: 'house',
+    // Coordenadas sobre la ilustración pintada (public/art/hall-*.webp, 1764×720).
+    floor: [[170, 565], [1210, 565], [1600, 615], [1745, 640], [1750, 712], [15, 712], [60, 640]],
+    scale: [565, 0.62, 712, 0.62],
+    spawn: [130, 670],
     fracture: quinqueLit,
     onEnter: (s) => (flag(s, 'hallSeen') ? [] : [
       { t: 'flag', k: 'hallSeen' },
@@ -183,31 +184,43 @@ export const ROOMS: Record<string, RoomDef> = {
     ]),
     hotspots: [
       {
-        id: 'puerta_calle', name: 'Puerta al jardín', rect: [40, 250, 130, 270],
+        id: 'puerta_calle', name: 'Puerta al jardín', rect: [20, 175, 145, 445], walk: [130, 670],
         exit: { to: 'jardin', at: [860, 650] },
       },
       {
-        id: 'puerta_salon', name: 'Salón', rect: [300, 260, 120, 250], walk: [360, 600],
+        id: 'chimenea_hall', name: 'Chimenea', rect: [345, 300, 225, 290], walk: [470, 620],
+        look: (s) => [say(byEra(s, 'Una chimenea de piedra con un escudo: un reloj de arena con alas. Está apagada, pero la piedra todavía está tibia.', 'La campana de la chimenea se rajó. Adentro hay un nido y ceniza húmeda.', 'Por la boca de la chimenea no entra aire: sale tinta, despacio, como humo al revés.'))],
+      },
+      {
+        id: 'ventanal_hall', name: 'Ventanal', rect: [190, 20, 145, 470],
+        look: (s) => [say(byEra(s, 'Vidrios emplomados. La luz de la tarde entra en diagonal y pinta el parquet.', 'Faltan la mitad de los vidrios. Entra la hiedra, y con ella el frío.'))],
+      },
+      {
+        id: 'galeria', name: 'Galería', rect: [665, 180, 440, 75],
+        look: [say('La galería del primer piso da toda la vuelta al hall. Desde arriba, alguien podría mirar sin ser visto.')],
+      },
+      {
+        id: 'puerta_salon', name: 'Salón', rect: [790, 300, 200, 225], walk: [890, 585],
         exit: { to: 'salon', at: [1420, 640] },
       },
       {
-        id: 'retrato_aurelio', name: 'Retrato de Don Aurelio', rect: [500, 120, 190, 240], walk: [595, 610],
+        id: 'retrato_aurelio', name: 'Retrato de Don Aurelio', rect: [405, 50, 115, 205], walk: [470, 620],
         look: (s) => [say(byEra(s,
           'Don Aurelio Valcárcel, de levita, con la mano sobre un reloj de bolsillo. El pintor le hizo los ojos un poco demasiado vivos.',
           'El retrato sigue ahí, cubierto de moho. Sólo la mano sobre el reloj quedó limpia, como si alguien la siguiera tocando.',
           'El marco está vacío. La tela es una mancha de tinta con forma de ave.'))],
       },
       {
-        id: 'candelabro', name: 'Candelabro', rect: [720, 380, 90, 120], walk: [760, 620], prop: 'candelabro',
+        id: 'candelabro', name: 'Candelabro', rect: [1120, 385, 75, 95], walk: [1150, 600],
         look: (s) => [say(flag(s, 'tookCandle') ? 'Quedan los cabos de las otras velas, consumidos hasta el bronce.' : 'Un candelabro de tres brazos. Sólo una vela está entera.')],
         take: (s) => flag(s, 'tookCandle') ? [say('No quedan velas enteras.')] :
           [{ t: 'anim', anim: 'pickup' }, { t: 'give', item: 'vela' }, { t: 'flag', k: 'tookCandle' }, { t: 'sfx', id: 'pickup' }],
         eras: ['1920'],
       },
       {
-        id: 'escalera', name: 'Escalera principal', rect: [840, 160, 240, 360], walk: [960, 570],
+        id: 'escalera', name: 'Escalera principal', rect: [1240, 100, 300, 490], walk: [1450, 625],
         look: (s) => [say(byEra(s,
-          'Una escalera de mármol que se abre como un abanico. Arriba, la puerta del rellano.',
+          'Una escalera de roble con alfombra bordó que sube a la galería. Arriba, la puerta del rellano.',
           'Los peldaños están cubiertos de hojas y escombro. Arriba, la puerta del rellano ya no está: se cayó hacia adentro.'))],
         exit: {
           to: 'corredor', at: [180, 640],
@@ -216,7 +229,7 @@ export const ROOMS: Record<string, RoomDef> = {
         },
       },
       {
-        id: 'reloj_pie', name: 'Reloj de pie', rect: [1180, 190, 110, 320], walk: [1235, 610], prop: 'reloj_pie',
+        id: 'reloj_pie', name: 'Reloj de pie', rect: [645, 300, 80, 225], walk: [690, 590],
         look: (s) => [say(flag(s, 'clockOpen')
           ? 'La caja del reloj quedó abierta. Las agujas siguen en las cuatro menos veinte.'
           : byEra(s, 'Un reloj de pie inglés, detenido a las doce en punto. Anselmo lo para cada noche… pero este parece no haber andado en años.',
@@ -233,13 +246,13 @@ export const ROOMS: Record<string, RoomDef> = {
         },
       },
       {
-        id: 'rosa', name: 'Rosa', rect: [1060, 360, 100, 260], walk: [1010, 650], face: 'right', npc: 'rosa', eras: ['1920'],
+        id: 'rosa', name: 'Rosa', rect: [590, 455, 80, 205], walk: [745, 665], face: 'left', npc: 'rosa', eras: ['1920'],
         when: (s) => !flag(s, 'rosaGone'),
         look: [say('Una muchacha con delantal y un plumero, que limpia el mismo marco una y otra vez.')],
         talk: [{ t: 'dialog', id: 'rosa' }],
       },
       {
-        id: 'puerta_estudio', name: 'Estudio', rect: [1400, 270, 110, 240], walk: [1455, 600],
+        id: 'puerta_estudio', name: 'Estudio', rect: [1030, 325, 85, 190], walk: [1070, 580],
         look: (s) => [say(flag(s, 'estudioOpen') ? 'El estudio de Don Aurelio.' : 'Una puerta con una placa de bronce: ESTUDIO. Con llave.')],
         useItem: {
           llave_estudio: [{ t: 'anim', anim: 'use' }, { t: 'sfx', id: 'unlock' }, { t: 'take', item: 'llave_estudio' }, { t: 'flag', k: 'estudioOpen' }, say('La llave gira con un ruido seco, como un hueso.')],
@@ -252,7 +265,7 @@ export const ROOMS: Record<string, RoomDef> = {
         },
       },
       {
-        id: 'puerta_biblioteca', name: 'Biblioteca', rect: [1700, 260, 120, 250], walk: [1760, 600],
+        id: 'puerta_biblioteca', name: 'Biblioteca', rect: [1580, 175, 180, 470], walk: [1650, 665],
         look: (s) => [say(flag(s, 'libraryOpen') ? 'La biblioteca.' : 'Doble puerta de nogal, con llave. Por la rendija sale olor a papel.')],
         useItem: {
           llave_biblioteca: [{ t: 'anim', anim: 'use' }, { t: 'sfx', id: 'unlock' }, { t: 'take', item: 'llave_biblioteca' }, { t: 'flag', k: 'libraryOpen' }, say('Abierta.')],
@@ -312,7 +325,7 @@ export const ROOMS: Record<string, RoomDef> = {
       },
       {
         id: 'salida', name: 'Volver al hall', rect: [1520, 250, 80, 300],
-        exit: { to: 'hall', at: [360, 620] },
+        exit: { to: 'hall', at: [890, 590] },
       },
     ],
   },
@@ -381,7 +394,7 @@ export const ROOMS: Record<string, RoomDef> = {
       {
         id: 'salida', name: 'Volver al hall', rect: [0, 240, 90, 320],
         exit: {
-          to: 'hall', at: [1700, 640],
+          to: 'hall', at: [1650, 665],
           when: (s) => s.era === '1920' || flag(s, 'tookQuinque'),
           locked: [say('Donde estaba la puerta hay oscuridad. Antes de irme, quiero ver qué es eso que brilla sobre el escritorio.')],
         },
@@ -427,7 +440,7 @@ export const ROOMS: Record<string, RoomDef> = {
       },
       {
         id: 'salida', name: 'Volver al hall', rect: [0, 240, 80, 320],
-        exit: { to: 'hall', at: [1455, 620] },
+        exit: { to: 'hall', at: [1070, 590] },
       },
     ],
   },
@@ -447,7 +460,7 @@ export const ROOMS: Record<string, RoomDef> = {
     hotspots: [
       {
         id: 'escalera', name: 'Bajar al hall', rect: [0, 240, 90, 320],
-        exit: { to: 'hall', at: [960, 580] },
+        exit: { to: 'hall', at: [1450, 630] },
       },
       {
         id: 'retrato1', name: 'Retrato', rect: [250, 150, 160, 210], walk: [330, 620],
