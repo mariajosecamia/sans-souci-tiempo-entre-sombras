@@ -22,12 +22,13 @@ Ale eligió la fachada en abandono pintada como referencia de todo el juego. Los
 - Español e inglés: selector en el menú principal y en Opciones (`src/i18n/`).
 - Elena pintada a mano: camina de perfil, de espaldas y de frente; se agacha, estira la mano, examina, lee y se asusta; retrato pintado en los diálogos.
 - Objetos pintados en el estuche y en las salas; portón abierto pintado.
+- Anselmo, Rosa, Mercedes e Isabel pintados, con parpadeo y retratos pintados.
 - Láminas del invernadero, cuarto de Isabel, sótano y sala del reloj. Objetos pintados que se toman se tapan con un retazo (`inPaint` en `painted.ts`).
 
 ## Siguiente
 - Las 11 salas ya usan láminas pintadas en todas sus épocas. Falta el portón abierto.
-- Personajes secundarios (Anselmo, Mercedes, Rosa, Isabel) todavía dibujados por código: faltan sus cuadros pintados.
-- Objetos sin pintar: cámara, nota de mamá, dibujo de Isabel.
+- Mercedes sentada sin sillón (el salón ya tiene uno pintado): pedido al hilo de arte.
+
 - Integrar ilustraciones pintadas (manifiesto de capas PNG) unificadas con el mismo tratamiento de papel y paleta.
 - Mejorar el dibujo de Elena y hoja de personaje maestra.
 - Ampliar hacia 22 escenas y 15 acertijos: usina, teléfono, túnel, pararrayos, las tres velas de la biblioteca, la cámara como mecánica.

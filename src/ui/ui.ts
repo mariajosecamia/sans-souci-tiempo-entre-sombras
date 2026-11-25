@@ -24,7 +24,7 @@ const esc = (s: string) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;');
 const OBJ_ART: Record<string, [string, number]> = {
   aceitera: ['aceitera', 1], carta: ['carta', 1], cinta: ['cinta-celeste', 1], libro: ['diario', 1], engranaje: ['engranaje', 0.95],
   fosforos: ['fosforos', 0.95], quinque: ['lampara-apagada', 1], quinque_on: ['lampara-encendida', 1], lata: ['lata-querosen', 0.95],
-  llave: ['llave-bronce', 0.95], llave_larga: ['llave-bronce', 1], llave_chica: ['llave-mariposa', 0.72], vela: ['vela', 1], vela_on: ['vela', 0.86],
+  llave: ['llave-bronce', 0.95], llave_larga: ['llave-bronce', 1], llave_chica: ['llave-mariposa', 0.72], vela: ['vela', 1], vela_on: ['vela', 0.86], camara: ['camara', 1], nota: ['nota', 0.95], dibujo: ['dibujo', 1],
 };
 const objImages: Record<string, HTMLImageElement> = {};
 for (const [f] of Object.values(OBJ_ART)) if (!objImages[f]) { const im = new Image(); im.src = `art/obj/${f}.webp`; objImages[f] = im; }
@@ -224,9 +224,9 @@ export class UI {
 
   /** Retratos pintados a mano (el resto se dibuja por código hasta que lleguen). */
   private paintedPortraits: Record<string, HTMLImageElement> = (() => {
-    const im = new Image();
-    im.src = 'art/elena-retrato.webp';
-    return { elena: im };
+    const out: Record<string, HTMLImageElement> = {};
+    for (const who of ['elena', 'anselmo', 'mercedes', 'rosa', 'isabel']) { const im = new Image(); im.src = `art/retratos/${who}.webp`; out[who] = im; }
+    return out;
   })();
 
   private portrait(who: string): HTMLCanvasElement | null {

@@ -56,6 +56,8 @@ export class WorldScene extends Phaser.Scene {
     this.load.spritesheet('elena-p', 'art/elena.webp', { frameWidth: ELENA_FW, frameHeight: ELENA_FH });
     // objetos pintados que aparecen sobre las salas (los que se pueden tomar)
     this.load.image('obj-aceitera', 'art/obj/aceitera.webp');
+    // personajes secundarios pintados: una fila por personaje, quieta y parpadeo
+    this.load.spritesheet('npcs-p', 'art/npcs.webp', { frameWidth: ELENA_FW, frameHeight: ELENA_FH });
     this.load.image('obj-lata', 'art/obj/lata-querosen.webp');
   }
 
@@ -92,6 +94,34 @@ export class WorldScene extends Phaser.Scene {
     this.stepFrames = new Set([idx('caminar-1'), idx('caminar-5'), idx('espaldas-1'), idx('espaldas-3'), idx('frente-1'), idx('frente-3')]);
   }
 
+  /** Personajes secundarios pintados: fila en la hoja y hacia dónde miran en el dibujo. */
+  private static NPC_ROW: Record<string, [number, 1 | -1]> = { anselmo: [0, -1], rosa: [1, -1], mercedes: [2, -1], isabel: [3, 1] };
+
+  private npcAnims(): void {
+    if (!this.textures.exists('npcs-p')) return;
+    for (const [k, [row]] of Object.entries(WorldScene.NPC_ROW)) {
+      const a = row * 2, b = a + 1;
+      this.anims.create({ key: `${k}-p`, frames: [...Array(16).fill(a), b].map((f) => ({ key: 'npcs-p', frame: f })), frameRate: 6, repeat: -1, delay: Math.random() * 1500 });
+    }
+  }
+
+  /** Crea un personaje secundario parado en (x, y) mirando hacia `face`. Usa el pintado si está. */
+  private npcSprite(key: string, x: number, y: number, face?: 'left' | 'right'): Phaser.GameObjects.Sprite {
+    const row = WorldScene.NPC_ROW[key];
+    if (row && this.anims.exists(`${key}-p`)) {
+      const want = face === 'left' ? -1 : face === 'right' ? 1 : row[1];
+      const sp = this.add.sprite(x, y, 'npcs-p', row[0] * 2).setOrigin(0.5, ELENA_FOOT).setScale((this.roomScale() * 300 * 0.86) / ELENA_FIG_H).setFlipX(want !== row[1]);
+      sp.play({ key: `${key}-p`, startFrame: Math.floor(Math.random() * 12) });
+      return sp;
+    }
+    const sh = this.sheets[key];
+    const sp = this.add.sprite(x, y, key, 0).setOrigin(0.45, FOOT_Y / FRAME_H).setScale(this.roomScale() / sh.res);
+    sp.play(`${key}-${key === 'mercedes' ? 'sit' : 'idle'}`);
+    // los dibujados por código miran a la derecha
+    sp.setFlipX(face === 'left' || (!face && key !== 'isabel'));
+    return sp;
+  }
+
   /** Escala de Elena en esta sala, para que mida lo mismo que la dibujada por código. */
   private playerScale(): number {
     return this.painted ? (this.roomScale() * 300 * 0.86) / ELENA_FIG_H : this.roomScale() / this.sheets.elena.res;
@@ -107,6 +137,7 @@ export class WorldScene extends Phaser.Scene {
     (window as any).__game = this;
     this.buildTextures();
     this.elenaAnims();
+    this.npcAnims();
     this.cameras.main.setZoom(ZOOM);
     this.cameras.main.setBackgroundColor('#0e0c0a');
     this.input.mouse?.disableContextMenu();
@@ -545,13 +576,9 @@ export class WorldScene extends Phaser.Scene {
           this.npcs.push(sp);
           continue;
         }
-        const anim = key === 'mercedes' ? 'sit' : 'idle';
-        const sh = this.sheets[key];
-        const sp = this.add.sprite(x + w / 2, y + hh, key, 0).setOrigin(0.45, FOOT_Y / FRAME_H).setScale(this.roomScale() / sh.res).setDepth(y + hh);
-        sp.play(`${key}-${anim}`);
-        sp.setFlipX(h.face === 'left' ? false : h.face === 'right');
-        if (h.face === 'left') sp.setFlipX(false);
-        if (h.npc === 'anselmo' || h.npc === 'rosa' || h.npc === 'mercedes') sp.setFlipX(h.face !== 'left' ? true : false);
+        // h.face es hacia dónde mira Elena al hablarle: el personaje mira al revés
+        const npcFace = h.face === 'left' ? 'right' : h.face === 'right' ? 'left' : undefined;
+        const sp = this.npcSprite(key, x + w / 2, y + hh, npcFace).setDepth(y + hh);
         if (h.npc === 'rosa_ink') { sp.setTint(0x333333); this.tweens.add({ targets: sp, x: sp.x + 12, duration: 700, yoyo: true, repeat: -1, ease: 'Sine.inOut' }); }
         if (h.npc === 'isabel') { sp.setAlpha(0.72); this.tweens.add({ targets: sp, alpha: 0.45, duration: 2000, yoyo: true, repeat: -1 }); }
         if (era === 'sombras' && h.npc !== 'isabel') sp.setTint(0x9a9690);
@@ -746,8 +773,7 @@ export class WorldScene extends Phaser.Scene {
   private async runEvent(id: string): Promise<void> {
     switch (id) {
       case 'anselmo_gate': {
-        const sp = this.add.sprite(1050, 600, 'anselmo', 0).setOrigin(0.45, FOOT_Y / FRAME_H).setScale(1 / this.sheets.anselmo.res).setDepth(560).setAlpha(0).setFlipX(true);
-        sp.play('anselmo-idle');
+        const sp = this.npcSprite('anselmo', 1050, 600, 'left').setDepth(560).setAlpha(0);
         this.temp.push(sp);
         const lamp = this.add.image(1020, 470, 'glow').setBlendMode(Phaser.BlendModes.ADD).setDepth(9150).setScale(0.8).setAlpha(0);
         this.temp.push(lamp);
@@ -778,8 +804,7 @@ export class WorldScene extends Phaser.Scene {
       case 'musicbox': {
         audio.playMelody(MELODY, 0.6);
         await this.delay(600);
-        const sp = this.add.sprite(1150, 640, 'isabel', 0).setOrigin(0.45, FOOT_Y / FRAME_H).setScale(1 / this.sheets.isabel.res).setDepth(640).setAlpha(0).setFlipX(true);
-        sp.play('isabel-idle');
+        const sp = this.npcSprite('isabel', 1150, 640, 'left').setDepth(640).setAlpha(0);
         this.temp.push(sp);
         this.tweens.add({ targets: sp, alpha: 0.7, duration: 900, yoyo: true, hold: 1200 });
         await this.delay(1500);
