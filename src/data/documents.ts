@@ -133,8 +133,8 @@ Y si sos vos: sé que vas a elegir bien.
 Tu mamá, Juana`,
   },
   frag_fuente: {
-    id: 'frag_fuente', title: 'Fragmento: la escalinata', kind: 'recorte', date: 'verano de 1908',
-    body: `Una niña de vestido blanco sube y baja la escalinata del jardín contando los escalones en voz alta. Siempre le da un número distinto. "Que no pase el tiempo", dice en cada escalón. "Que no pase el tiempo, que no pase."`,
+    id: 'frag_fuente', title: 'Fragmento: la fuente', kind: 'recorte', date: 'verano de 1908',
+    body: `Una niña de vestido blanco tira monedas a la fuente. Cada moneda, un deseo. "Que no pase el tiempo", dice. "Que no pase el tiempo, que no pase." El agua se las traga sin ruido.`,
   },
   frag_invernadero: {
     id: 'frag_invernadero', title: 'Fragmento: el invernadero', kind: 'recorte', date: 'otoño de 1906',

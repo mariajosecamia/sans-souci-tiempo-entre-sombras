@@ -7,8 +7,9 @@ export interface Plate { src: string; dx?: number; dy?: number; ambient?: number
 
 export const PAINTED: Record<string, Partial<Record<Era, Plate>>> = {
   jardin: {
-    '1920': { src: 'art/jardin-1920.webp', dx: -12, tint: 0xd9b89a },
+    '1920': { src: 'art/jardin-1920.webp', tint: 0xdcc4a0 },
     abandono: { src: 'art/jardin-abandono.webp', tint: 0xb8b4a0 },
+    sombras: { src: 'art/jardin-sombras.webp', tint: 0xd8d4cc },
   },
   hall: {
     '1920': { src: 'art/hall-1920.webp', tint: 0xe8c9a0 },
