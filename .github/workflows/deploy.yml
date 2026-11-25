@@ -1,8 +1,9 @@
 name: Publicar en GitHub Pages
 
+# Por ahora sólo se publica a mano (Actions → Publicar en GitHub Pages → Run workflow),
+# hasta que Pages esté activado en el repo (Settings → Pages → Source: GitHub Actions).
+# Después se vuelve a activar el push a main.
 on:
-  push:
-    branches: [main]
   workflow_dispatch:
 
 permissions:
