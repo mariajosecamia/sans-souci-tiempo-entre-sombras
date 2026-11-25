@@ -239,3 +239,11 @@ body.big #say .text { font-size: calc(var(--u)*42); }
 .sheet h1 { border-bottom: calc(var(--u)*1.5) solid rgba(60,46,36,.5); padding-bottom: calc(var(--u)*8); }
 .pbtn { box-shadow: inset 0 0 calc(var(--u)*12) rgba(110,70,40,.25); }
 .pbtn:hover { background: #efe2c2; }
+
+/* ---- selector de idioma (v0.3) */
+.lang { display: flex; gap: calc(var(--u) * 14); justify-content: center; margin-top: calc(var(--u) * 22); }
+.lang .pbtn { min-width: calc(var(--u) * 150); font-size: calc(var(--u) * 26); padding: calc(var(--u) * 6) calc(var(--u) * 18); }
+.lang .pbtn.sel { cursor: default; }
+.range .lang { margin: 0; justify-content: flex-end; }
+#title .menu .lang .pbtn::before, #title .menu .lang .pbtn::after { content: none; }
+#title .menu .lang { justify-content: flex-start; }

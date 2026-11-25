@@ -11,7 +11,7 @@ Respetar las paletas de `src/core/palette.ts` y la biblia de arte (`docs/ART-BIB
 - `npm run dev` — servidor local (http://localhost:5173, vista previa de arte en `/preview.html?room=hall&era=abandono`).
 - `npm test` — recorrido completo y los 4 finales (vitest, sin navegador).
 - `npm run build` — typecheck + build a `dist/`.
-- `node tools/shoot.cjs "preview.html?room=salon&era=1920" out.png` — captura con Playwright.
+- QA visual: NO usar Chromium/Playwright del contenedor (Ale no lo autoriza). Revisar con superposiciones de hotspots en PIL sobre las láminas, o en el Chrome de Windows de Ale (perfil "claudio") con cuidado.
 
 ## Arquitectura
 - `src/systems/` — estado y lógica pura (`interact`, `combine`, `settleEra`). Produce `Effect[]`; no conoce Phaser.
@@ -22,6 +22,8 @@ Respetar las paletas de `src/core/palette.ts` y la biblia de arte (`docs/ART-BIB
 - `src/ui/` — interfaz DOM superpuesta (`--u` = alto/1080).
 
 ## Reglas
+- Idiomas: los datos están en español; `src/i18n/en.ts` es el diccionario español→inglés y `t()` traduce al mostrar. Todo texto nuevo necesita su entrada en inglés (lo verifica `tests/i18n.test.ts`). Textos de interfaz: `L(es, en)`.
+- Láminas pintadas: `src/data/painted.ts` (efectos `fx`: velas, faroles, fuego, ventanas con lluvia, cortinas, plantas). Exteriores: `python3 tools/skymask.py public/art/<sala>-<época>.webp` separa cielo/nubes/vegetación.
 - Toda interacción nueva va primero en datos + lógica, y se cubre en `tests/walkthrough.test.ts`.
 - Coordenadas del mundo: ancho de sala × 720. Juego 1920×1080 con zoom 1.5.
 - Las tres épocas (1920, abandono, sombras) comparten composición: el pintor decide por `L.era`.

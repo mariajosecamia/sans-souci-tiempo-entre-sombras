@@ -330,7 +330,7 @@ export const ROOMS: Record<string, RoomDef> = {
       },
       {
         id: 'chimenea', name: 'Chimenea', rect: [400, 255, 430, 295], walk: [620, 650],
-        look: (s) => [say(flag(s, 'panelOpen') ? 'El fondo de la chimenea se corrió. Detrás, una escalera de piedra baja hacia el sótano.' : 'Una chimenea de mármol negro. El fuego está bajo. El fondo de hierro tiene un relieve de engranajes.')],
+        look: (s) => [say(flag(s, 'panelOpen') ? 'El fondo de la chimenea se corrió. Detrás, una escalera de piedra baja hacia el sótano.' : 'Una chimenea de piedra clara, con el fuego encendido. El fondo de hierro, detrás de las llamas, tiene un relieve de engranajes.')],
         exit: { to: 'sotano', at: [260, 640], when: (s) => flag(s, 'panelOpen'), locked: [say('Es una chimenea. No pienso meterme.')] },
       },
       {

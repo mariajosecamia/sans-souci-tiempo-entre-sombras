@@ -4,6 +4,7 @@ import type { PuzzleId } from '../systems/types';
 import { ICONS } from './icons';
 import { SYMBOLS, THEATRE_FIGURES, NOTES_ES, checkPuzzle } from '../puzzles/puzzles';
 import { audio } from '../audio/audio';
+import { t } from '../i18n/i18n';
 
 const h = (html: string): HTMLElement => {
   const t = document.createElement('template');
@@ -21,7 +22,7 @@ export function openPuzzle(ui: UI, id: PuzzleId): Promise<boolean> {
 }
 
 function frame(ui: UI, title: string, intro: string): { el: HTMLElement; body: HTMLElement; done: (ok: boolean) => void; result: Promise<boolean> } {
-  const el = h(`<div class="sheet paper puzzle"><h1>${title}</h1><p><i>${intro}</i></p><div class="pz"></div></div>`);
+  const el = h(`<div class="sheet paper puzzle"><h1>${t(title)}</h1><p><i>${t(intro)}</i></p><div class="pz"></div></div>`);
   const m = ui.modal(el);
   let ok = false;
   const result = m.closed.then(() => ok);
@@ -52,14 +53,14 @@ function clock(ui: UI): Promise<boolean> {
   };
   const lbl = h(`<div style="font-family:var(--fell);font-size:calc(var(--u)*40)"></div>`);
   const row = h(`<div class="row"></div>`);
-  const btn = (t: string, fn: () => void) => { const b = h(`<button class="pbtn">${t}</button>`); b.addEventListener('click', () => { fn(); audio.tick(0.3); draw(); }); row.appendChild(b); };
+  const btn = (label: string, fn: () => void) => { const b = h(`<button class="pbtn">${t(label)}</button>`); b.addEventListener('click', () => { fn(); audio.tick(0.3); draw(); }); row.appendChild(b); };
   btn('− hora', () => { hh = hh === 1 ? 12 : hh - 1; });
   btn('+ hora', () => { hh = hh === 12 ? 1 : hh + 1; });
   btn('− 5 min', () => { mm = (mm + 55) % 60; });
   btn('+ 5 min', () => { mm = (mm + 5) % 60; });
-  const ok = h(`<button class="pbtn sel">Soltar las agujas</button>`);
+  const ok = h(t(`<button class="pbtn sel">Soltar las agujas</button>`));
   ok.addEventListener('click', () => {
-    if (checkPuzzle('clock', { h: hh, m: mm })) { audio.sfx('clock_open'); lbl.textContent = '…clac.'; f.done(true); }
+    if (checkPuzzle('clock', { h: hh, m: mm })) { audio.sfx('clock_open'); lbl.textContent = t('…clac.'); f.done(true); }
     else { audio.sfx('door_stuck'); ui.toast('El reloj no responde. No es esa hora.'); }
   });
   f.body.append(face, lbl, row, h(`<div class="row"></div>`));
@@ -83,7 +84,7 @@ function discs(ui: UI, id: 'symbols', title: string, intro: string, symbols: str
     draw();
     row.appendChild(d);
   });
-  const ok = h(`<button class="pbtn sel">Tirar del cajón</button>`);
+  const ok = h(t(`<button class="pbtn sel">Tirar del cajón</button>`));
   ok.addEventListener('click', () => {
     const ans = state.map((i) => symbols[i]);
     if (checkPuzzle(id, ans)) { audio.sfx('unlock'); f.done(true); }
@@ -111,7 +112,7 @@ function theatre(ui: UI): Promise<boolean> {
   };
   const rows = h(`<div></div>`);
   ['Varilla de arriba', 'Varilla del medio', 'Varilla de abajo'].forEach((name, i) => {
-    const r = h(`<div class="row" style="margin:calc(var(--u)*8) 0"><span style="font-family:var(--fell);font-size:calc(var(--u)*28);width:calc(var(--u)*240);text-align:right">${name}</span></div>`);
+    const r = h(`<div class="row" style="margin:calc(var(--u)*8) 0"><span style="font-family:var(--fell);font-size:calc(var(--u)*28);width:calc(var(--u)*240);text-align:right">${t(name)}</span></div>`);
     THEATRE_FIGURES.forEach((fig) => {
       const b = h(`<button class="pbtn" aria-label="${fig}" style="width:calc(var(--u)*86);height:calc(var(--u)*76);padding:calc(var(--u)*6)">${ICONS[fig]}</button>`);
       b.addEventListener('click', () => {
@@ -125,7 +126,7 @@ function theatre(ui: UI): Promise<boolean> {
     });
     rows.appendChild(r);
   });
-  const ok = h(`<button class="pbtn sel">Acercar la vela</button>`);
+  const ok = h(t(`<button class="pbtn sel">Acercar la vela</button>`));
   ok.addEventListener('click', () => {
     if (slots.some((s) => !s)) { ui.toast('Faltan figuras.'); return; }
     if (checkPuzzle('theatre', slots)) { wall.style.background = 'radial-gradient(ellipse at 50% 60%, #fff1c8, #e0b870 60%, #49392d)'; audio.sfx('memory'); f.done(true); }
@@ -155,7 +156,7 @@ function piano(ui: UI): Promise<boolean> {
     });
     keys.appendChild(b);
   });
-  const clear = h(`<button class="pbtn">Empezar de nuevo</button>`);
+  const clear = h(t(`<button class="pbtn">Empezar de nuevo</button>`));
   clear.addEventListener('click', () => { played.length = 0; shown.textContent = ''; });
   const r = h(`<div class="row"></div>`);
   r.appendChild(clear);

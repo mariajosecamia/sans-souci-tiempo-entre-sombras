@@ -5,6 +5,7 @@ import { ITEMS } from '../data/items';
 import type { Effect, GameState, Hotspot, RoomDef, Pt, Verb } from '../systems/types';
 import { applyEffect, newState } from '../systems/state';
 import { PAINTED, plateKey, OVERLAY_PROPS, type Plate } from '../data/painted';
+import { t, L } from '../i18n/i18n';
 import { interact, combine, inspectItem, visibleHotspots, hotspotName, verbsFor, eraOf, settleEra, eraToggleAvailable } from '../systems/logic';
 import { renderRoom, RenderedRoom } from '../art/render';
 import { buildSheet, buildSombra, buildCrow, ANIMS, FRAME_W, FRAME_H, FOOT_Y, Sheet } from '../art/sprites';
@@ -582,12 +583,12 @@ export class WorldScene extends Phaser.Scene {
     switch (e.t) {
       case 'say': await ui.say(e.who ?? 'elena', e.text, this.opts); break;
       case 'dialog': await this.runDialog(e.id); break;
-      case 'give': applyEffect(this.s, e); ui.renderInventory(this.s); ui.toast(`Guardé en el estuche: ${ITEMS[e.item]?.name ?? e.item}`); break;
+      case 'give': applyEffect(this.s, e); ui.renderInventory(this.s); ui.toast(`${L('Guardé en el estuche', 'Put in my satchel')}: ${t(ITEMS[e.item]?.name ?? e.item)}`); break;
       case 'take': applyEffect(this.s, e); ui.renderInventory(this.s); break;
       case 'flag': applyEffect(this.s, e); break;
       case 'doc': applyEffect(this.s, e); await ui.showDoc(e.id); break;
-      case 'note': { const had = this.s.notes.includes(e.id); applyEffect(this.s, e); if (!had) ui.toast('Diario actualizado'); break; }
-      case 'fragment': applyEffect(this.s, e); ui.toast(`Recuerdo recuperado (${this.s.fragments.length} de 5)`); break;
+      case 'note': { const had = this.s.notes.includes(e.id); applyEffect(this.s, e); if (!had) ui.toast(L('Diario actualizado', 'Journal updated')); break; }
+      case 'fragment': applyEffect(this.s, e); ui.toast(L(`Recuerdo recuperado (${this.s.fragments.length} de 5)`, `Memory recovered (${this.s.fragments.length} of 5)`)); break;
       case 'goto': {
         this.cameras.main.stopFollow();
         if (e.era) this.s.era = e.era;
@@ -769,7 +770,7 @@ export class WorldScene extends Phaser.Scene {
     this.running = true; this.ui.busy = true;
     this.s.pos = [this.player.x, this.player.y];
     const c = await this.ui.pause();
-    if (c === 'save') { Save.save(this.s, 'manual'); this.ui.toast('Partida guardada'); }
+    if (c === 'save') { Save.save(this.s, 'manual'); this.ui.toast(L('Partida guardada', 'Game saved')); }
     if (c === 'options') await this.ui.options(this.opts, (o) => this.setOptions(o));
     if (c === 'howto') await this.ui.howto();
     this.running = false; this.ui.busy = false;

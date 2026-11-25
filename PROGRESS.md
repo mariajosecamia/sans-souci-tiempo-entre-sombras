@@ -15,7 +15,15 @@ Ale eligió la fachada en abandono pintada como referencia de todo el juego. Los
 - Hecho: jardín y fachada en 1920 y abandono, con zonas interactivas reubicadas sobre la pintura, escala de Elena por sala, tinte de luz por placa.
 - Efectos comunes encima de todo: papel de acuarela, viñeta, lluvia, polvo, niebla baja, haces de luz (en salas procedurales).
 
+## v0.3 (2026-11-25)
+- Movimiento en el fondo: nubes que se desplazan, plantas e hiedra con viento, cortinas, velas, faroles, fuego y lluvia en ventanas.
+- Elena a escala de cada lámina; diálogos a máquina de escribir; papel, ornamentos y cintas en menús y cuadros.
+- Candado del portón: Anselmo lo destraba.
+- Español e inglés: selector en el menú principal y en Opciones (`src/i18n/`).
+
 ## Siguiente
+- Láminas que faltan: invernadero, cuarto de Isabel, sótano, sala del reloj; portón abierto.
+- Animaciones pintadas de Elena (caminar, agacharse, tomar, usar, leer, reaccionar) y objetos pintados.
 - Integrar ilustraciones pintadas (manifiesto de capas PNG) unificadas con el mismo tratamiento de papel y paleta.
 - Mejorar el dibujo de Elena y hoja de personaje maestra.
 - Ampliar hacia 22 escenas y 15 acertijos: usina, teléfono, túnel, pararrayos, las tres velas de la biblioteca, la cámara como mecánica.
