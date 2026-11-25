@@ -205,6 +205,13 @@ export class WorldScene extends Phaser.Scene {
     // niebla baja para el abandono y el exterior
     const [hz, hc] = makeCanvas(1024, 200);
     for (let i = 0; i < 90; i++) { const x = Math.random() * 1024, y = 80 + Math.random() * 100, r0 = 40 + Math.random() * 110; const g = hc.createRadialGradient(x, y, 0, x, y, r0); g.addColorStop(0, 'rgba(255,255,255,0.10)'); g.addColorStop(1, 'rgba(255,255,255,0)'); hc.fillStyle = g; hc.fillRect(x - r0, y - r0, r0 * 2, r0 * 2); }
+    // bordes suaves: sin cortes rectos arriba ni a los costados (las tiras se superponen sin que se note)
+    hc.globalCompositeOperation = 'destination-in';
+    const fv = hc.createLinearGradient(0, 0, 0, 200); fv.addColorStop(0, 'rgba(0,0,0,0)'); fv.addColorStop(0.5, 'rgba(0,0,0,1)'); fv.addColorStop(1, 'rgba(0,0,0,1)');
+    hc.fillStyle = fv; hc.fillRect(0, 0, 1024, 200);
+    const fh = hc.createLinearGradient(0, 0, 1024, 0); fh.addColorStop(0, 'rgba(0,0,0,0)'); fh.addColorStop(0.2, 'rgba(0,0,0,1)'); fh.addColorStop(0.8, 'rgba(0,0,0,1)'); fh.addColorStop(1, 'rgba(0,0,0,0)');
+    hc.fillStyle = fh; hc.fillRect(0, 0, 1024, 200);
+    hc.globalCompositeOperation = 'source-over';
     this.textures.addCanvas('haze', hz);
     this.textures.addCanvas('vignette', pv);
   }
@@ -675,8 +682,8 @@ export class WorldScene extends Phaser.Scene {
     }
     // niebla baja que deriva
     if (era === 'abandono' || this.room.outdoor || this.room.id === 'sotano') {
-      for (let i = 0; i < Math.ceil(W / 900) + 1; i++) {
-        const hz = this.add.image(i * 900 - 100, 720, 'haze').setOrigin(0, 1).setScale(1.1, 1).setDepth(9150).setAlpha(this.room.outdoor ? 0.5 : 0.38)
+      for (let i = 0; i < Math.ceil(W / 700) + 1; i++) {
+        const hz = this.add.image(i * 700 - 250, 720, 'haze').setOrigin(0, 1).setScale(1.1, 1).setDepth(9150).setAlpha(this.room.outdoor ? 0.42 : 0.34)
           .setTint(era === 'abandono' ? 0xc8d0b8 : 0xe8e0d0);
         this.tweens.add({ targets: hz, x: hz.x + 140, duration: 16000 + i * 3000, yoyo: true, repeat: -1, ease: 'Sine.inOut' });
         this.particles.push(hz as any);
