@@ -35,7 +35,7 @@ export class WorldScene extends Phaser.Scene {
   layerObjs: Phaser.GameObjects.GameObject[] = [];
   player!: Phaser.GameObjects.Sprite;
   npcs: Phaser.GameObjects.Sprite[] = [];
-  clouds: { spr: Phaser.GameObjects.TileSprite; speed: number }[] = [];
+  clouds: { spr: Phaser.GameObjects.Image; speed: number }[] = [];
   props: Phaser.GameObjects.GameObject[] = [];
   temp: Phaser.GameObjects.GameObject[] = [];
   glows: Phaser.GameObjects.Image[] = [];
@@ -354,7 +354,11 @@ export class WorldScene extends Phaser.Scene {
   }
 
   update(_t: number, dt: number): void {
-    for (const c of this.clouds) c.spr.tilePositionX += (c.speed * dt) / 1000;
+    // nubes sueltas que cruzan el cielo; al salir por un lado vuelven a entrar por el otro
+    for (const c of this.clouds) {
+      c.spr.x -= (c.speed * dt) / 1000;
+      if (c.spr.x < -c.spr.displayWidth / 2) c.spr.x = this.room.width + c.spr.displayWidth / 2;
+    }
     if (!this.player || this.titleMode) return;
     if (this.moving) {
       const { tx, ty } = this.moving;
@@ -432,12 +436,12 @@ export class WorldScene extends Phaser.Scene {
       for (const [era, pl] of missing as [Era, Plate][]) {
         this.load.image(plateKey(id, era), pl.src);
         const base = pl.src.replace(/\.webp$/, '');
-        if (pl.sky) { this.load.image(plateKey(id, era) + '-fg', base + '-fg.webp'); this.load.image(plateKey(id, era) + '-clouds', base + '-clouds.webp'); }
+        if (pl.sky) { this.load.image(plateKey(id, era) + '-fg', base + '-fg.webp'); this.load.spritesheet(plateKey(id, era) + '-clouds', base + '-clouds.webp', { frameWidth: 640, frameHeight: 240 }); }
         if (pl.veg) this.load.image(plateKey(id, era) + '-veg', base + '-veg.webp');
         if (pl.alt) {
           const k = plateKey(id, era) + '-alt', b = pl.alt.src.replace(/\.webp$/, '');
           this.load.image(k, pl.alt.src);
-          if (pl.sky) { this.load.image(k + '-fg', b + '-fg.webp'); this.load.image(k + '-clouds', b + '-clouds.webp'); }
+          if (pl.sky) { this.load.image(k + '-fg', b + '-fg.webp'); this.load.spritesheet(k + '-clouds', b + '-clouds.webp', { frameWidth: 640, frameHeight: 240 }); }
           if (pl.veg) this.load.image(k + '-veg', b + '-veg.webp');
         }
         for (const [hid, ip] of Object.entries(pl.inPaint ?? {})) if (ip.patch) this.load.image(plateKey(id, era) + '-patch-' + hid, ip.patch);
@@ -526,13 +530,17 @@ export class WorldScene extends Phaser.Scene {
       const sc = Math.max(this.room.width / src.width, 720 / src.height);
       img.setScale(sc);
       if (plate.sky && this.textures.exists(pk + '-clouds') && this.textures.exists(pk + '-fg')) {
-        // nubes que pasan detrás de la casa y los árboles
-        const ch = (this.textures.get(pk + '-clouds').getSourceImage() as HTMLImageElement).height;
-        for (const [speed, alpha, dy, flip] of [[14, 0.9, 0, false], [26, 0.55, 22, false]] as [number, number, number, boolean][]) {
-          const clouds = this.add.tileSprite(0, dy, this.room.width, ch, pk + '-clouds').setOrigin(0).setDepth(-19.5).setAlpha(alpha).setFlipX(flip);
-          clouds.tilePositionX = dy * 37;
-          if (!this.opts.reduceMotion) this.clouds.push({ spr: clouds, speed });
-          this.layerObjs.push(clouds);
+        // nubes sueltas que pasan detrás de la casa y los árboles: tres alturas, las de más arriba (más lejos) más lentas y chicas
+        const W = this.room.width;
+        const n = Math.ceil(W / 260);
+        for (let i = 0; i < n; i++) {
+          const far = i % 3; // 0 = lejos (arriba), 2 = cerca (más abajo)
+          const y = 30 + far * 55 + Math.random() * 40;
+          const scl = 0.55 + far * 0.25 + Math.random() * 0.2;
+          const cl = this.add.image((i / n) * W + Math.random() * 180, y, pk + '-clouds', Math.floor(Math.random() * 6))
+            .setDepth(-19.6 + far * 0.03).setScale(scl, scl * (0.85 + Math.random() * 0.3)).setAlpha(0.7 + far * 0.1).setFlipX(Math.random() < 0.5);
+          if (!this.opts.reduceMotion) this.clouds.push({ spr: cl, speed: 5 + far * 6 + Math.random() * 4 });
+          this.layerObjs.push(cl);
         }
         const fg = this.add.image(plate.dx ?? 0, plate.dy ?? 0, pk + '-fg').setOrigin(0).setScale(sc).setDepth(-19);
         this.layerObjs.push(fg);

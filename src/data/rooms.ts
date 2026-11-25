@@ -96,7 +96,7 @@ export const ROOMS: Record<string, RoomDef> = {
   jardin: {
     id: 'jardin', name: 'Jardín y fachada', width: 1765, outdoor: true, ambience: 'rain-out',
     floor: [[20, 608], [1420, 608], [1440, 658], [1745, 668], [1750, 712], [15, 712]],
-    scale: [608, 0.38, 712, 0.56],
+    scale: [608, 0.38, 712, 0.62],
     spawn: [80, 670],
     fracture: quinqueLit,
     hotspots: [
@@ -367,7 +367,7 @@ export const ROOMS: Record<string, RoomDef> = {
     id: 'biblioteca', name: 'Biblioteca', width: 1583, ambience: 'house',
     // Coordenadas sobre la ilustración pintada (public/art/biblioteca-*.webp, 1583×720).
     floor: [[90, 610], [1560, 610], [1575, 712], [80, 712]],
-    scale: [610, 1.0, 712, 1.1],
+    scale: [610, 1.12, 712, 1.22],
     spawn: [170, 680],
     fracture: (s) => quinqueLit(s),
     hotspots: [
@@ -440,7 +440,7 @@ export const ROOMS: Record<string, RoomDef> = {
     id: 'estudio', name: 'Estudio de Don Aurelio', width: 1279, ambience: 'house', forceEra: '1920',
     // Coordenadas sobre la ilustración pintada (public/art/estudio-1920.webp, 1279×720).
     floor: [[100, 650], [1180, 650], [1250, 712], [90, 712]],
-    scale: [650, 1.0, 712, 1.0],
+    scale: [650, 1.3, 712, 1.4],
     spawn: [200, 695],
     hotspots: [
       {
