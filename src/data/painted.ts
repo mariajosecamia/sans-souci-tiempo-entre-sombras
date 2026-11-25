@@ -14,6 +14,8 @@ export interface Plate {
   /** Objetos que ya están pintados en la lámina (no se dibujan encima). Si se pueden tomar,
    *  `patch` es un retazo de la misma pintura sin el objeto, que se pone cuando desaparece. */
   inPaint?: Record<string, { patch?: string; x: number; y: number }>;
+  /** Otra versión de la misma lámina (misma composición) que se usa cuando el flag está activo. */
+  alt?: { flag: string; src: string };
 }
 
 export type Fx =
@@ -41,7 +43,7 @@ export const PAINTED: Record<string, Partial<Record<Era, Plate>>> = {
     sombras: { src: 'art/hall-sombras.webp', tint: 0xd8d4cc },
   },
   entrada: {
-    '1920': { src: 'art/entrada-1920.webp', sky: true, veg: true, tint: 0xc8b8a0, fx: [{ k: 'lamp', x: 508, y: 185, r: 110 }] },
+    '1920': { src: 'art/entrada-1920.webp', alt: { flag: 'gateOpen', src: 'art/entrada-1920-abierto.webp' }, sky: true, veg: true, tint: 0xc8b8a0, fx: [{ k: 'lamp', x: 508, y: 185, r: 110 }] },
     abandono: { src: 'art/entrada-abandono.webp', sky: true, veg: true, tint: 0xb8b4a0 },
     sombras: { src: 'art/entrada-sombras.webp', sky: true, veg: true, tint: 0xd8d4cc },
   },

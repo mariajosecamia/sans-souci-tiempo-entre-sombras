@@ -22,6 +22,7 @@ Respetar las paletas de `src/core/palette.ts` y la biblia de arte (`docs/ART-BIB
 - `src/ui/` — interfaz DOM superpuesta (`--u` = alto/1080).
 
 ## Reglas
+- Elena pintada: cuadros en `/mnt/project-files/sans-souci/arte/elena/` → `python3 tools/elena-atlas.py <carpeta>` genera `public/art/elena.webp` y `src/art/elenaFrames.ts`. Objetos pintados en `public/art/obj/` (mapa `OBJ_ART` en `ui.ts`). Variantes de lámina por estado: `alt` en `painted.ts`.
 - Idiomas: los datos están en español; `src/i18n/en.ts` es el diccionario español→inglés y `t()` traduce al mostrar. Todo texto nuevo necesita su entrada en inglés (lo verifica `tests/i18n.test.ts`). Textos de interfaz: `L(es, en)`.
 - Láminas pintadas: `src/data/painted.ts` (efectos `fx`: velas, faroles, fuego, ventanas con lluvia, cortinas, plantas). Exteriores: `python3 tools/skymask.py public/art/<sala>-<época>.webp` separa cielo/nubes/vegetación.
 - Toda interacción nueva va primero en datos + lógica, y se cubre en `tests/walkthrough.test.ts`.

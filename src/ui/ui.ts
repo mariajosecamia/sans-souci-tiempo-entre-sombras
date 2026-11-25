@@ -20,6 +20,42 @@ const $ = <T extends HTMLElement = HTMLElement>(html: string): T => {
 };
 const esc = (s: string) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;');
 
+/** Objetos pintados a mano (public/art/obj/). Los que faltan se dibujan por código. */
+const OBJ_ART: Record<string, [string, number]> = {
+  aceitera: ['aceitera', 1], carta: ['carta', 1], cinta: ['cinta-celeste', 1], libro: ['diario', 1], engranaje: ['engranaje', 0.95],
+  fosforos: ['fosforos', 0.95], quinque: ['lampara-apagada', 1], quinque_on: ['lampara-encendida', 1], lata: ['lata-querosen', 0.95],
+  llave: ['llave-bronce', 0.95], llave_larga: ['llave-bronce', 1], llave_chica: ['llave-mariposa', 0.72], vela: ['vela', 1], vela_on: ['vela', 0.86],
+};
+const objImages: Record<string, HTMLImageElement> = {};
+for (const [f] of Object.values(OBJ_ART)) if (!objImages[f]) { const im = new Image(); im.src = `art/obj/${f}.webp`; objImages[f] = im; }
+
+/** Dibuja un objeto pintado en un lienzo cuadrado, o null si todavía no cargó. */
+function paintedIcon(icon: string, size: number): HTMLCanvasElement | null {
+  const art = OBJ_ART[icon];
+  const im = art && objImages[art[0]];
+  if (!im || !im.complete || !im.naturalWidth) return null;
+  const c = document.createElement('canvas');
+  c.width = size; c.height = size;
+  const g = c.getContext('2d')!;
+  const k = art[1], d = size * k;
+  const top = icon === 'vela_on' ? size - d : (size - d) / 2;
+  g.shadowColor = 'rgba(40,25,10,.45)'; g.shadowBlur = size * 0.05; g.shadowOffsetY = size * 0.02;
+  g.drawImage(im, (size - d) / 2, top, d, d);
+  if (icon === 'vela_on') {
+    // llama sobre el pabilo
+    g.shadowColor = 'transparent';
+    const fx = (size - d) / 2 + d * (121 / 256), fy = top + d * (10 / 256);
+    const halo = g.createRadialGradient(fx, fy, 0, fx, fy, size * 0.2);
+    halo.addColorStop(0, 'rgba(255,220,140,.55)'); halo.addColorStop(1, 'rgba(255,200,120,0)');
+    g.fillStyle = halo; g.fillRect(0, 0, size, size);
+    const fl = g.createRadialGradient(fx, fy + size * 0.01, 0, fx, fy, size * 0.06);
+    fl.addColorStop(0, '#fff6d8'); fl.addColorStop(0.5, '#ffcf6a'); fl.addColorStop(1, 'rgba(230,120,40,0)');
+    g.fillStyle = fl;
+    g.beginPath(); g.ellipse(fx, fy, size * 0.03, size * 0.07, 0, 0, Math.PI * 2); g.fill();
+  }
+  return c;
+}
+
 const VERB_LABEL = (v: Verb): string => ({ look: L('Mirar', 'Look'), use: L('Usar', 'Use'), take: L('Tomar', 'Take'), talk: L('Hablar', 'Talk') })[v];
 
 export class UI {
@@ -77,7 +113,8 @@ export class UI {
     this.inv = $(`<div id="inv"><div class="tab">${L('Estuche', 'Satchel')}</div><div class="case"></div></div>`);
     this.inv.querySelector('.tab')!.addEventListener('click', () => this.inv.classList.toggle('open'));
     this.erabtn = $(`<div id="erabtn" title="${L('Cambiar de tiempo', 'Change time')} (T)" role="button" aria-label="${L('Cambiar de tiempo', 'Change time')}"></div>`);
-    this.erabtn.appendChild(drawIcon('quinque_on', 80));
+    this.erabtn.appendChild(paintedIcon('quinque_on', 80) ?? drawIcon('quinque_on', 80));
+    objImages['lampara-encendida'].addEventListener('load', () => { const c = this.erabtn.querySelector('canvas'); const p = paintedIcon('quinque_on', 80); if (c && p) c.replaceWith(p); }, { once: true });
     this.erabtn.appendChild($(`<span>${L('Otro tiempo', 'Other time')}</span>`));
     this.erabtn.addEventListener('click', (e) => { e.stopPropagation(); this.onEra?.(); });
     this.label = $(`<div id="label" class="passthrough"></div>`);
@@ -114,7 +151,11 @@ export class UI {
 
   icon(id: string, size = 96): HTMLCanvasElement {
     const key = id + size;
-    if (!this.iconCache[key]) this.iconCache[key] = drawIcon(ITEMS[id]?.icon ?? id, size);
+    const ic = ITEMS[id]?.icon ?? id;
+    if (!this.iconCache[key] || this.iconCache[key].dataset.painted !== '1') {
+      const p = paintedIcon(ic, size);
+      if (p) { p.dataset.painted = '1'; this.iconCache[key] = p; } else if (!this.iconCache[key]) this.iconCache[key] = drawIcon(ic, size);
+    }
     const c = document.createElement('canvas');
     c.width = size; c.height = size;
     c.getContext('2d')!.drawImage(this.iconCache[key], 0, 0);
@@ -181,8 +222,23 @@ export class UI {
     });
   }
 
+  /** Retratos pintados a mano (el resto se dibuja por código hasta que lleguen). */
+  private paintedPortraits: Record<string, HTMLImageElement> = (() => {
+    const im = new Image();
+    im.src = 'art/elena-retrato.webp';
+    return { elena: im };
+  })();
+
   private portrait(who: string): HTMLCanvasElement | null {
     if (!['elena', 'anselmo', 'mercedes', 'rosa', 'isabel'].includes(who)) return null;
+    const pim = this.paintedPortraits[who];
+    if (pim?.complete && pim.naturalWidth && !this.portraitCache[who + '-p']) {
+      const c = document.createElement('canvas');
+      c.width = 300; c.height = 348;
+      c.getContext('2d')!.drawImage(pim, 0, 0, 300, 348);
+      this.portraitCache[who + '-p'] = c;
+    }
+    if (this.portraitCache[who + '-p']) return this.portraitCache[who + '-p'];
     if (!this.portraitCache[who]) {
       const c = document.createElement('canvas');
       c.width = 300; c.height = 348;

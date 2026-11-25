@@ -9,6 +9,7 @@ import { t, L } from '../i18n/i18n';
 import { interact, combine, inspectItem, visibleHotspots, hotspotName, verbsFor, eraOf, settleEra, eraToggleAvailable } from '../systems/logic';
 import { renderRoom, RenderedRoom } from '../art/render';
 import { buildSheet, buildSombra, buildCrow, ANIMS, FRAME_W, FRAME_H, FOOT_Y, Sheet } from '../art/sprites';
+import { ELENA_FRAMES, ELENA_FW, ELENA_FH, ELENA_FOOT, ELENA_FIG_H } from '../art/elenaFrames';
 import { drawProp } from '../art/props';
 import { makeCanvas } from '../art/ink';
 import { UI } from '../ui/ui';
@@ -50,11 +51,62 @@ export class WorldScene extends Phaser.Scene {
 
   constructor() { super('world'); }
 
+  /** Elena pintada a mano (si no carga, queda la dibujada por código). */
+  preload(): void {
+    this.load.spritesheet('elena-p', 'art/elena.webp', { frameWidth: ELENA_FW, frameHeight: ELENA_FH });
+    // objetos pintados que aparecen sobre las salas (los que se pueden tomar)
+    this.load.image('obj-aceitera', 'art/obj/aceitera.webp');
+    this.load.image('obj-lata', 'art/obj/lata-querosen.webp');
+  }
+
+  /** ¿Se usa la hoja pintada de Elena? */
+  private painted = false;
+  /** Hacia dónde mira Elena: de perfil, de espaldas (hacia el fondo) o de frente. */
+  private dir: 'side' | 'back' | 'front' = 'side';
+  private stepFrames = new Set<number>([0, 5]);
+  private targetY = 0;
+
+  private elenaAnims(): void {
+    if (!this.textures.exists('elena-p')) return;
+    this.painted = true;
+    const F = (...names: string[]) => names.map((n) => ({ key: 'elena-p', frame: (ELENA_FRAMES as readonly string[]).indexOf(n) }));
+    const mk = (key: string, frames: { key: string; frame: number }[], fps: number, loop: boolean) => {
+      if (this.anims.exists(key)) this.anims.remove(key);
+      this.anims.create({ key, frames, frameRate: fps, repeat: loop ? -1 : 0 });
+    };
+    mk('elena-walk', F('caminar-1', 'caminar-2', 'caminar-3', 'caminar-4', 'caminar-5', 'caminar-6', 'caminar-7', 'caminar-8'), 10, true);
+    // quieta, con un parpadeo cada tanto
+    mk('elena-idle', F(...Array(14).fill('quieta-34-1'), 'quieta-34-2'), 6, true);
+    mk('elena-idle-profile', F(...Array(14).fill('quieta-perfil-1'), 'quieta-perfil-2'), 6, true);
+    mk('elena-walk-back', F('espaldas-1', 'espaldas-2', 'espaldas-3', 'espaldas-4'), 7, true);
+    mk('elena-idle-back', F('espaldas-quieta'), 1, true);
+    mk('elena-walk-front', F('frente-1', 'frente-2', 'frente-3', 'frente-4'), 7, true);
+    mk('elena-idle-front', F('frente-quieta'), 1, true);
+    mk('elena-pickup', F('agacharse-1', 'agacharse-2', 'agacharse-3', 'agacharse-3', 'agacharse-4', 'quieta-34-1'), 7, false);
+    mk('elena-take', F('tomar-1', 'tomar-2', 'tomar-3', 'tomar-3', 'tomar-1', 'quieta-34-1'), 7, false);
+    mk('elena-use', F('tomar-1', 'tomar-2', 'tomar-3', 'tomar-3', 'tomar-2', 'quieta-34-1'), 7, false);
+    mk('elena-examine', F('examinar-1', 'examinar-2', 'examinar-2', 'examinar-1'), 3, false);
+    mk('elena-react', F('susto-1', 'susto-2', 'susto-2', 'susto-2', 'quieta-34-1'), 6, false);
+    mk('elena-read', F('leer-1', 'leer-2'), 2, true);
+    const idx = (n: string) => (ELENA_FRAMES as readonly string[]).indexOf(n);
+    this.stepFrames = new Set([idx('caminar-1'), idx('caminar-5'), idx('espaldas-1'), idx('espaldas-3'), idx('frente-1'), idx('frente-3')]);
+  }
+
+  /** Escala de Elena en esta sala, para que mida lo mismo que la dibujada por código. */
+  private playerScale(): number {
+    return this.painted ? (this.roomScale() * 300 * 0.86) / ELENA_FIG_H : this.roomScale() / this.sheets.elena.res;
+  }
+
+  private idleKey(): string {
+    return this.dir === 'back' ? 'elena-idle-back' : this.dir === 'front' ? 'elena-idle-front' : 'elena-idle';
+  }
+
   create(): void {
     this.res = Math.min(1.5, Math.max(1, window.devicePixelRatio || 1)) * (Math.min(window.innerWidth, window.innerHeight) < 600 ? 0.7 : 1);
     this.ui = new UI();
     (window as any).__game = this;
     this.buildTextures();
+    this.elenaAnims();
     this.cameras.main.setZoom(ZOOM);
     this.cameras.main.setBackgroundColor('#0e0c0a');
     this.input.mouse?.disableContextMenu();
@@ -204,14 +256,18 @@ export class WorldScene extends Phaser.Scene {
     if (verb === 'look' && !h.exit) { this.face(h.rect[0] + h.rect[2] / 2); return; }
     const [x, y] = h.walk ?? [h.rect[0] + h.rect[2] / 2, h.rect[1] + h.rect[3]];
     await this.walkTo(x, y);
+    this.targetY = h.rect[1] + h.rect[3] / 2;
     if (h.face) this.facing = h.face === 'left' ? -1 : 1;
     else this.face(h.rect[0] + h.rect[2] / 2);
     this.player.setFlipX(this.facing < 0);
+    // frente a un objeto o una persona se pone de perfil; ante una puerta queda de espaldas
+    if (!h.exit && this.dir !== 'side') { this.dir = 'side'; this.player.play('elena-idle', true); }
   }
 
   private face(x: number): void {
     if (Math.abs(x - this.player.x) > 8) this.facing = x < this.player.x ? -1 : 1;
     this.player.setFlipX(this.facing < 0);
+    if (this.dir !== 'side' && !this.moving) { this.dir = 'side'; this.player.play('elena-idle', true); }
   }
 
   // ------------------------------------------------------------------ movimiento
@@ -221,9 +277,12 @@ export class WorldScene extends Phaser.Scene {
     return new Promise((resolve) => {
       if (Math.hypot(tx - this.player.x, ty - this.player.y) < 4) { resolve(); return; }
       this.moving = { tx, ty, resolve };
-      this.facing = tx < this.player.x ? -1 : 1;
+      const dx = tx - this.player.x, dy = ty - this.player.y;
+      if (Math.abs(dx) > 4) this.facing = dx < 0 ? -1 : 1;
       this.player.setFlipX(this.facing < 0);
-      this.player.play('elena-walk', true);
+      // si va sobre todo hacia el fondo o hacia adelante, camina de espaldas o de frente
+      this.dir = this.painted && Math.abs(dy) > Math.abs(dx) * 1.3 && Math.abs(dy) > 18 ? (dy < 0 ? 'back' : 'front') : 'side';
+      this.player.play(this.dir === 'back' ? 'elena-walk-back' : this.dir === 'front' ? 'elena-walk-front' : 'elena-walk', true);
     });
   }
 
@@ -239,7 +298,7 @@ export class WorldScene extends Phaser.Scene {
         this.player.setPosition(tx, ty);
         const r = this.moving.resolve;
         this.moving = undefined;
-        this.player.play('elena-idle', true);
+        this.player.play(this.idleKey(), true);
         r();
       } else {
         // en diagonal hacia el fondo se camina un poco más lento: la animación se ajusta para no patinar
@@ -247,8 +306,8 @@ export class WorldScene extends Phaser.Scene {
         this.player.y += (dy / d) * step;
         this.player.anims.timeScale = Math.max(0.6, Math.abs(dx / d)) * 1 + Math.abs(dy / d) * 0.6;
         const f = Number(this.player.frame.name);
-        if ((f === 0 || f === 5) && f !== this.lastStep) { audio.step(this.surface()); this.lastStep = f; }
-        if (f !== 0 && f !== 5) this.lastStep = -1;
+        if (this.stepFrames.has(f) && f !== this.lastStep) { audio.step(this.surface()); this.lastStep = f; }
+        if (!this.stepFrames.has(f)) this.lastStep = -1;
       }
       this.player.setDepth(this.player.y);
     }
@@ -307,6 +366,12 @@ export class WorldScene extends Phaser.Scene {
         const base = pl.src.replace(/\.webp$/, '');
         if (pl.sky) { this.load.image(plateKey(id, era) + '-fg', base + '-fg.webp'); this.load.image(plateKey(id, era) + '-clouds', base + '-clouds.webp'); }
         if (pl.veg) this.load.image(plateKey(id, era) + '-veg', base + '-veg.webp');
+        if (pl.alt) {
+          const k = plateKey(id, era) + '-alt', b = pl.alt.src.replace(/\.webp$/, '');
+          this.load.image(k, pl.alt.src);
+          if (pl.sky) { this.load.image(k + '-fg', b + '-fg.webp'); this.load.image(k + '-clouds', b + '-clouds.webp'); }
+          if (pl.veg) this.load.image(k + '-veg', b + '-veg.webp');
+        }
         for (const [hid, ip] of Object.entries(pl.inPaint ?? {})) if (ip.patch) this.load.image(plateKey(id, era) + '-patch-' + hid, ip.patch);
       }
       this.load.once('complete', () => res());
@@ -375,7 +440,9 @@ export class WorldScene extends Phaser.Scene {
     const plate = PAINTED[this.room.id]?.[era];
     if (plate && this.textures.exists(plateKey(this.room.id, era))) {
       // ilustración pintada: cubre la sala; encima van sólo los efectos que unifican (aire, polvo, papel)
-      const pk = plateKey(this.room.id, era);
+      // variante de la lámina según el estado (por ejemplo, el portón abierto)
+      const pk0 = plateKey(this.room.id, era);
+      const pk = plate.alt && this.s.flags[plate.alt.flag] && this.textures.exists(pk0 + '-alt') ? pk0 + '-alt' : pk0;
       const img = this.add.image(plate.dx ?? 0, plate.dy ?? 0, pk).setOrigin(0).setDepth(-20);
       const src = img.texture.getSourceImage() as HTMLImageElement;
       const sc = Math.max(this.room.width / src.width, 720 / src.height);
@@ -401,8 +468,8 @@ export class WorldScene extends Phaser.Scene {
       // objetos pintados que ya se tomaron: se tapan con un retazo de la misma pintura
       const vis = new Set(visibleHotspots(this.room.id, this.s).map((h) => h.id));
       for (const [hid, ip] of Object.entries(plate.inPaint ?? {})) {
-        if (!ip.patch || vis.has(hid) || !this.textures.exists(pk + '-patch-' + hid)) continue;
-        this.layerObjs.push(this.add.image(ip.x * sc, ip.y * sc, pk + '-patch-' + hid).setOrigin(0).setScale(sc).setDepth(-17));
+        if (!ip.patch || vis.has(hid) || !this.textures.exists(pk0 + '-patch-' + hid)) continue;
+        this.layerObjs.push(this.add.image(ip.x * sc, ip.y * sc, pk0 + '-patch-' + hid).setOrigin(0).setScale(sc).setDepth(-17));
       }
       this.plateFx(plate, pk, sc);
       if (plate.ambient) {
@@ -449,6 +516,17 @@ export class WorldScene extends Phaser.Scene {
       const inPaint = !!PAINTED[this.room.id]?.[era]?.inPaint?.[h.id];
       if (h.prop && (!painted || (OVERLAY_PROPS.has(h.prop) && !inPaint))) {
         const [x, y, w, hh] = h.rect;
+        const objKey = ({ aceitera: 'obj-aceitera', lata: 'obj-lata' } as Record<string, string>)[h.prop];
+        if (objKey && this.textures.exists(objKey)) {
+          // objeto pintado a mano, apoyado en el piso del rectángulo
+          const foot = objKey === 'obj-aceitera' ? 218 / 256 : 244 / 256;
+          const k = Math.min(w / 256, hh / (256 * foot)) * 1.05;
+          const img = this.add.image(x + w / 2, y + hh, objKey).setOrigin(0.5, foot).setScale(k).setDepth(h.depth ?? (y + hh) - 400);
+          const pt = PAINTED[this.room.id]?.[era]?.tint;
+          if (pt) img.setTint(pt);
+          this.props.push(img);
+          continue;
+        }
         const cv = drawProp(h.prop, era, w, hh, this.res);
         if (cv) {
           const k = `prop-${h.id}-${Date.now()}`;
@@ -481,10 +559,12 @@ export class WorldScene extends Phaser.Scene {
       }
     }
     if (!this.player) {
-      this.player = this.add.sprite(0, 0, 'elena', 0).setOrigin(0.45, FOOT_Y / FRAME_H).setScale(1 / this.sheets.elena.res);
+      this.player = this.painted
+        ? this.add.sprite(0, 0, 'elena-p', 0).setOrigin(0.5, ELENA_FOOT)
+        : this.add.sprite(0, 0, 'elena', 0).setOrigin(0.45, FOOT_Y / FRAME_H);
       this.player.play('elena-idle');
     }
-    this.player.setScale(this.roomScale() / this.sheets.elena.res);
+    this.player.setScale(this.playerScale());
     this.player.setVisible(!this.titleMode);
     this.player.clearTint();
     if (era === 'sombras') this.player.setTint(0xcfc8bc);
@@ -649,11 +729,13 @@ export class WorldScene extends Phaser.Scene {
   }
 
   private playAnim(a: string): Promise<void> {
-    const key = `elena-${a === 'examine' ? 'examine' : a}`;
+    // tomar algo alto: estira la mano; algo bajo: se agacha
+    const key = `elena-${this.painted && a === 'pickup' && this.targetY < 470 ? 'take' : a}`;
+    this.dir = 'side';
     if (!this.anims.exists(key)) return Promise.resolve();
     return new Promise((r) => {
       this.player.play(key);
-      if (a === 'read') { this.time.delayedCall(700, () => { this.player.play('elena-idle'); r(); }); return; }
+      if (a === 'read') { this.time.delayedCall(1400, () => { this.player.play('elena-idle'); r(); }); return; }
       this.player.once('animationcomplete', () => { this.player.play('elena-idle'); r(); });
     });
   }
