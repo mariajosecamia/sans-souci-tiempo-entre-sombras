@@ -4,7 +4,7 @@ import { ROOMS } from '../data/rooms';
 import { ITEMS } from '../data/items';
 import type { Effect, GameState, Hotspot, RoomDef, Pt, Verb } from '../systems/types';
 import { applyEffect, newState } from '../systems/state';
-import { PAINTED, plateKey, OVERLAY_PROPS } from '../data/painted';
+import { PAINTED, plateKey, OVERLAY_PROPS, type Plate } from '../data/painted';
 import { interact, combine, inspectItem, visibleHotspots, hotspotName, verbsFor, eraOf, settleEra, eraToggleAvailable } from '../systems/logic';
 import { renderRoom, RenderedRoom } from '../art/render';
 import { buildSheet, buildSombra, buildCrow, ANIMS, FRAME_W, FRAME_H, FOOT_Y, Sheet } from '../art/sprites';
@@ -33,6 +33,7 @@ export class WorldScene extends Phaser.Scene {
   layerObjs: Phaser.GameObjects.GameObject[] = [];
   player!: Phaser.GameObjects.Sprite;
   npcs: Phaser.GameObjects.Sprite[] = [];
+  clouds: { spr: Phaser.GameObjects.TileSprite; speed: number }[] = [];
   props: Phaser.GameObjects.GameObject[] = [];
   temp: Phaser.GameObjects.GameObject[] = [];
   glows: Phaser.GameObjects.Image[] = [];
@@ -226,6 +227,7 @@ export class WorldScene extends Phaser.Scene {
   }
 
   update(_t: number, dt: number): void {
+    for (const c of this.clouds) c.spr.tilePositionX += (c.speed * dt) / 1000;
     if (!this.player || this.titleMode) return;
     if (this.moving) {
       const { tx, ty } = this.moving;
@@ -286,6 +288,7 @@ export class WorldScene extends Phaser.Scene {
 
   private clearRoom(): void {
     for (const o of [...this.layerObjs, ...this.npcs, ...this.props, ...this.glows, ...this.particles]) o.destroy();
+    this.clouds = [];
     this.layerObjs = []; this.npcs = []; this.props = []; this.glows = []; this.particles = [];
     for (const k of this.texKeys) this.textures.remove(k);
     this.texKeys = [];
@@ -298,7 +301,12 @@ export class WorldScene extends Phaser.Scene {
     const missing = (Object.entries(plates) as [Era, { src: string }][]).filter(([era]) => !this.textures.exists(plateKey(id, era)));
     if (!missing.length) return Promise.resolve();
     return new Promise((res) => {
-      for (const [era, pl] of missing) this.load.image(plateKey(id, era), pl.src);
+      for (const [era, pl] of missing as [Era, Plate][]) {
+        this.load.image(plateKey(id, era), pl.src);
+        const base = pl.src.replace(/\.webp$/, '');
+        if (pl.sky) { this.load.image(plateKey(id, era) + '-fg', base + '-fg.webp'); this.load.image(plateKey(id, era) + '-clouds', base + '-clouds.webp'); }
+        if (pl.veg) this.load.image(plateKey(id, era) + '-veg', base + '-veg.webp');
+      }
       this.load.once('complete', () => res());
       this.load.once('loaderror', () => res());
       this.load.start();
@@ -316,7 +324,25 @@ export class WorldScene extends Phaser.Scene {
       // ilustración pintada: cubre la sala; encima van sólo los efectos que unifican (aire, polvo, papel)
       const img = this.add.image(plate.dx ?? 0, plate.dy ?? 0, plateKey(this.room.id, era)).setOrigin(0).setDepth(-20);
       const src = img.texture.getSourceImage() as HTMLImageElement;
-      img.setScale(Math.max(this.room.width / src.width, 720 / src.height));
+      const sc = Math.max(this.room.width / src.width, 720 / src.height);
+      img.setScale(sc);
+      const pk = plateKey(this.room.id, era);
+      if (plate.sky && this.textures.exists(pk + '-clouds') && this.textures.exists(pk + '-fg')) {
+        // nubes que pasan detrás de la casa y los árboles
+        const ch = (this.textures.get(pk + '-clouds').getSourceImage() as HTMLImageElement).height;
+        for (const [speed, alpha, dy, flip] of [[6, 0.55, 0, false], [11, 0.35, 18, true]] as [number, number, number, boolean][]) {
+          const clouds = this.add.tileSprite(0, dy, this.room.width, ch, pk + '-clouds').setOrigin(0).setDepth(-19.5).setAlpha(alpha).setFlipX(flip);
+          if (!this.opts.reduceMotion) this.clouds.push({ spr: clouds, speed });
+          this.layerObjs.push(clouds);
+        }
+        const fg = this.add.image(plate.dx ?? 0, plate.dy ?? 0, pk + '-fg').setOrigin(0).setScale(sc).setDepth(-19);
+        this.layerObjs.push(fg);
+      }
+      if (plate.veg && this.textures.exists(pk + '-veg') && !this.opts.reduceMotion && this.game.renderer.type === Phaser.WEBGL) {
+        const veg = this.add.image(plate.dx ?? 0, plate.dy ?? 0, pk + '-veg').setOrigin(0).setScale(sc).setDepth(-18);
+        veg.setPostPipeline('Sway');
+        this.layerObjs.push(veg);
+      }
       const vig = this.add.image(320, 180, 'vignette').setOrigin(0).setScrollFactor(0).setDisplaySize(1280, 720).setDepth(9800).setBlendMode(Phaser.BlendModes.MULTIPLY);
       this.layerObjs.push(img, vig);
       if (plate.ambient) {

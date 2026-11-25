@@ -1,5 +1,6 @@
 import Phaser from 'phaser';
 import { WorldScene } from './scenes/WorldScene';
+import { SwayPipeline } from './scenes/SwayPipeline';
 
 const game = new Phaser.Game({
   type: Phaser.AUTO,
@@ -11,6 +12,7 @@ const game = new Phaser.Game({
   render: { antialias: true, roundPixels: false },
   input: { activePointers: 2 },
   scene: [WorldScene],
+  pipeline: { Sway: SwayPipeline } as any,
 });
 
 (window as any).__phaser = game;

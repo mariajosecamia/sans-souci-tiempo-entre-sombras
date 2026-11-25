@@ -165,6 +165,10 @@ class AudioEngine {
   }
 
   tick(gain = 0.1, pitch = 1): void { this.burst(0.03, 3200 * pitch, 6, gain); }
+  /** Tecla de máquina de escribir: golpe seco + tipo metálico. */
+  key(): void { const p = 0.85 + Math.random() * 0.3; this.burst(0.025, 2600 * p, 5, 0.07); this.burst(0.012, 5200 * p, 8, 0.03); }
+  /** Campanita del final de renglón. */
+  ding(): void { this.tone(2093, 2093, 0.5, 0.04); }
   drip(): void { this.tone(1400, 600, 0.12, 0.08); }
   creak(gain = 0.15): void { this.tone(140, 90, 0.9, gain * 0.5, 'sawtooth'); this.burst(0.8, 300, 4, gain * 0.4); }
   step(surface: 'wood' | 'stone' | 'gravel' | 'water' = 'wood'): void {

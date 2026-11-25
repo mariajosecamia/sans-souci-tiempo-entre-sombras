@@ -10,6 +10,7 @@ import type { GameState, Verb } from '../systems/types';
 import { NOTES, OBJECTIVES, currentObjectives, CHAPTERS, chapterOf, PLACES, LEMA } from '../narrative/journal';
 import { Options } from '../persistence/save';
 import { TITLE, VERSION } from '../core/config';
+import { audio } from '../audio/audio';
 
 const $ = <T extends HTMLElement = HTMLElement>(html: string): T => {
   const t = document.createElement('template');
@@ -196,36 +197,64 @@ export class UI {
     const col = $(`<div class="col"></div>`);
     if (sp.name) col.appendChild($(`<div class="who" style="color:${sp.color}">${esc(sp.name)}</div>`));
     const t = $(`<div class="text"></div>`);
-    t.textContent = text;
+    // el texto completo reserva el espacio; se revela letra por letra encima
+    t.innerHTML = `<span class="typed"></span><span class="ghost">${esc(text)}</span>`;
     col.appendChild(t);
     this.sayBox.appendChild(col);
     return col;
   }
 
-  /** Línea de diálogo / narración. Se cierra con clic, tecla o tiempo. */
+  /** Escribe el texto letra por letra, como a máquina. Devuelve una función que lo completa de golpe. */
+  private typewrite(col: HTMLElement, text: string, speed: number, onDone: () => void): () => void {
+    const typed = col.querySelector('.typed') as HTMLElement, ghost = col.querySelector('.ghost') as HTMLElement;
+    let i = 0, stopped = false;
+    const cps = 38 * Math.max(0.3, speed);
+    const step = () => {
+      if (stopped) return;
+      i++;
+      typed.textContent = text.slice(0, i);
+      ghost.textContent = text.slice(i);
+      const ch = text[i - 1];
+      if (ch && ch !== ' ' && i % 2 === 0) audio.key();
+      if (i >= text.length) { stopped = true; onDone(); return; }
+      const pause = '.,;:!?…—'.includes(ch) ? 7 : 1;
+      timer = window.setTimeout(step, (1000 / cps) * pause);
+    };
+    let timer = window.setTimeout(step, 60);
+    return () => { if (stopped) return; stopped = true; clearTimeout(timer); typed.textContent = text; ghost.textContent = ''; onDone(); };
+  }
+
+  /** Línea de diálogo / narración. Clic o tecla: primero completa el texto, después lo cierra. */
   say(who: string, text: string, opts: Options): Promise<void> {
     return new Promise((res) => {
-      this.fillSay(who, text);
-      this.sayBox.appendChild($(`<div class="more">▾</div>`));
+      const col = this.fillSay(who, text);
+      const more = $(`<div class="more">▾</div>`);
+      more.style.visibility = 'hidden';
+      this.sayBox.appendChild(more);
       const ms = Math.max(2200, text.length * 55) / Math.max(0.3, opts.textSpeed);
-      let done = false;
+      let done = false, typing = true, timer = 0;
+      const complete = this.typewrite(col, text, opts.textSpeed, () => {
+        typing = false; more.style.visibility = 'visible';
+        timer = window.setTimeout(finish, ms * 1.6);
+      });
       const finish = () => {
         if (done) return; done = true;
         clearTimeout(timer);
-        this.sayBox.removeEventListener('click', finish);
+        this.sayBox.removeEventListener('click', advance);
         window.removeEventListener('keydown', key);
         this.sayBox.classList.remove('show');
         res();
       };
-      const key = (e: KeyboardEvent) => { if ([' ', 'Enter', '.'].includes(e.key)) { e.preventDefault(); finish(); } };
-      const timer = window.setTimeout(finish, ms * 2.2);
-      setTimeout(() => { this.sayBox.addEventListener('click', finish); window.addEventListener('keydown', key); }, 150);
+      const advance = () => { if (typing) complete(); else finish(); };
+      const key = (e: KeyboardEvent) => { if ([' ', 'Enter', '.'].includes(e.key)) { e.preventDefault(); advance(); } };
+      setTimeout(() => { this.sayBox.addEventListener('click', advance); window.addEventListener('keydown', key); }, 150);
     });
   }
 
   choose(who: string, prompt: string, options: string[]): Promise<number> {
     return new Promise((res) => {
       const col = this.fillSay(who, prompt);
+      this.typewrite(col, prompt, 2.5, () => {})();
       const box = $(`<div class="opts"></div>`);
       options.forEach((o, i) => {
         const b = $(`<button>${i + 1}. ${esc(o)}</button>`);

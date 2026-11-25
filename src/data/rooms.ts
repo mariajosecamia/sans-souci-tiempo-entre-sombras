@@ -27,7 +27,7 @@ export const ROOMS: Record<string, RoomDef> = {
     id: 'entrada', name: 'El portón', width: 1583, outdoor: true, ambience: 'rain-out',
     // Coordenadas sobre la ilustración pintada (public/art/entrada-*.webp, 1583×720).
     floor: [[30, 625], [1550, 600], [1570, 712], [15, 712]],
-    scale: [600, 0.74, 712, 0.74],
+    scale: [600, 0.95, 712, 0.95],
     spawn: [620, 670],
     onEnter: (s) => (flag(s, 'introDone') ? [] : [
       { t: 'flag', k: 'introDone' },
@@ -79,7 +79,7 @@ export const ROOMS: Record<string, RoomDef> = {
   jardin: {
     id: 'jardin', name: 'Jardín y fachada', width: 1765, outdoor: true, ambience: 'rain-out',
     floor: [[20, 608], [1420, 608], [1440, 658], [1745, 668], [1750, 712], [15, 712]],
-    scale: [608, 0.38, 712, 0.38],
+    scale: [608, 0.48, 712, 0.48],
     spawn: [80, 670],
     fracture: quinqueLit,
     hotspots: [
@@ -184,7 +184,7 @@ export const ROOMS: Record<string, RoomDef> = {
     id: 'hall', name: 'Hall principal', width: 1764, ambience: 'house',
     // Coordenadas sobre la ilustración pintada (public/art/hall-*.webp, 1764×720).
     floor: [[170, 565], [1210, 565], [1600, 615], [1745, 640], [1750, 712], [15, 712], [60, 640]],
-    scale: [565, 0.62, 712, 0.62],
+    scale: [565, 0.74, 712, 0.74],
     spawn: [130, 670],
     fracture: quinqueLit,
     onEnter: (s) => (flag(s, 'hallSeen') ? [] : [
