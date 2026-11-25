@@ -10,6 +10,11 @@
 - Prueba de recorrido completo y de los 4 finales.
 - Deploy a GitHub Pages con Actions.
 
+## Estética oficial (2026-11-25)
+Ale eligió la fachada en abandono pintada como referencia de todo el juego. Los fondos pasan a ser ilustraciones pintadas (`public/art/`, manifiesto en `src/data/painted.ts`); el arte procedural queda como respaldo hasta que llegue cada placa.
+- Hecho: jardín y fachada en 1920 y abandono, con zonas interactivas reubicadas sobre la pintura, escala de Elena por sala, tinte de luz por placa.
+- Efectos comunes encima de todo: papel de acuarela, viñeta, lluvia, polvo, niebla baja, haces de luz (en salas procedurales).
+
 ## Siguiente
 - Integrar ilustraciones pintadas (manifiesto de capas PNG) unificadas con el mismo tratamiento de papel y paleta.
 - Mejorar el dibujo de Elena y hoja de personaje maestra.

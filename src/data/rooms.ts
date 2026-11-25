@@ -39,7 +39,7 @@ export const ROOMS: Record<string, RoomDef> = {
         id: 'porton', name: 'Portón de hierro', rect: [860, 170, 380, 400], walk: [1050, 620],
         look: (s) => [say(flag(s, 'gateOpen') ? 'Abierto. Del otro lado, el jardín se hunde en la niebla.' : 'Hierro forjado, con un monograma: una V entrelazada con una S. Cerrado con cadena.')],
         exit: {
-          to: 'jardin', at: [220, 640], when: (s) => flag(s, 'gateOpen'),
+          to: 'jardin', at: [110, 680], when: (s) => flag(s, 'gateOpen'),
           locked: [say('Cerrado con cadena. Tiene que haber una manera de avisar que llegué.')],
         },
       },
@@ -74,47 +74,56 @@ export const ROOMS: Record<string, RoomDef> = {
   },
 
   // =========================================================== JARDÍN / FACHADA
+  // Coordenadas sobre la ilustración pintada (public/art/jardin-*.webp, 1440×720).
   jardin: {
-    id: 'jardin', name: 'Jardín y fachada', width: 1920, outdoor: true, ambience: 'rain-out',
-    floor: [[40, 560], [1880, 560], [1900, 708], [20, 708]],
-    scale: [560, 0.86, 708, 0.86],
-    spawn: [220, 640],
+    id: 'jardin', name: 'Jardín y fachada', width: 1440, outdoor: true, ambience: 'rain-out',
+    floor: [[30, 628], [1410, 628], [1430, 712], [10, 712]],
+    scale: [628, 0.42, 712, 0.42],
+    spawn: [110, 680],
     fracture: quinqueLit,
     hotspots: [
       {
-        id: 'puerta_principal', name: 'Puerta principal', rect: [900, 300, 120, 210], walk: [960, 580],
-        look: (s) => [say(byEra(s, 'Roble con herrajes de bronce. Encima, un vitral con un reloj de sol.', 'La puerta cuelga de una sola bisagra. El vitral es un hueco con dos vidrios verdes.'))],
+        id: 'puerta_principal', name: 'Puerta principal', rect: [795, 405, 140, 185], walk: [860, 640],
+        look: (s) => [say(byEra(s, 'Roble con herrajes de bronce, bajo un arco de piedra. Arriba, un farol encendido.', 'La puerta cuelga de una sola bisagra. El arco está comido por la hiedra.'))],
         exit: { to: 'hall', at: [180, 640] },
       },
       {
-        id: 'fuente', name: 'Fuente', rect: [360, 380, 300, 190], walk: [510, 620],
-        look: (s) => [say(byEra(s, 'Una fuente de tres tazas. El agua cae con un ruido de reloj de arena.', 'La fuente está seca, llena de hojas negras y una costra de musgo. En el fondo, monedas verdes de óxido.'))],
+        id: 'escalinata', name: 'Escalinata', rect: [225, 565, 275, 130], walk: [520, 680],
+        look: (s) => [say(byEra(s, 'Una escalinata de piedra con dos bochas en los pilares. Lleva a una puerta lateral, cerrada.', 'Los escalones están partidos y el musgo los volvió blandos como pan.'))],
       },
-      fragment('fuente', [480, 450, 60, 60], 'abandono', 'frag_fuente'),
+      fragment('fuente', [340, 525, 50, 50], 'abandono', 'frag_fuente'),
       {
-        id: 'carretilla', name: 'Carretilla', rect: [1380, 540, 190, 110], walk: [1440, 660],
-        look: (s) => [say(byEra(s, 'La carretilla de Anselmo: tierra, una pala, trapos.', 'La rueda se pudrió. Crecen helechos donde estaba la tierra.'))],
-      },
-      {
-        id: 'aceitera', name: 'Aceitera', rect: [1470, 510, 50, 50], walk: [1460, 660], prop: 'aceitera', eras: ['1920'],
+        id: 'aceitera', name: 'Aceitera', rect: [505, 650, 40, 40], walk: [560, 690], prop: 'aceitera', eras: ['1920'],
         when: (s) => !flag(s, 'tookOil'),
-        look: [say('Una aceitera de pico largo sobre los trapos de la carretilla.')],
+        look: [say('Una aceitera de pico largo, olvidada en el pasto al pie de la escalinata. Anselmo estuvo engrasando el portón.')],
         take: [{ t: 'anim', anim: 'pickup' }, { t: 'give', item: 'aceitera' }, { t: 'flag', k: 'tookOil' }, { t: 'sfx', id: 'pickup' }, say('Anselmo no la va a extrañar. Espero.')],
       },
       {
-        id: 'estatua', name: 'Estatua', rect: [1650, 250, 100, 300], walk: [1640, 640],
-        look: (s) => [say(byEra(s, 'Una ninfa de mármol que sostiene un reloj de arena vacío.', 'La ninfa perdió la cabeza. El reloj de arena sigue en sus manos, lleno de tierra.'))],
+        id: 'hiedra', name: 'Hiedra', rect: [690, 225, 320, 170],
+        look: (s) => [say(byEra(s, 'La hiedra cubre la galería del primer piso como un chal. Alguien la poda con mucho cuidado.', 'La hiedra ganó. Cuelga sobre el arco de la entrada como una cortina.'))],
       },
       {
-        id: 'ventanas', name: 'Ventanas de la fachada', rect: [420, 110, 1100, 140],
-        look: (s) => [say(byEra(s, 'Doce ventanas y sólo una con luz, abajo a la izquierda: el salón.', 'Ninguna ventana tiene vidrios. Por una de arriba se asoma una rama de dentro hacia afuera.'))],
+        id: 'pergola', name: 'Pérgola', rect: [1060, 180, 340, 180],
+        look: (s) => [say(byEra(s, 'Una pérgola con glicinas, sobre la terraza del ala derecha.', 'Quedan los tirantes de la pérgola, como las costillas de un animal grande.'))],
       },
       {
-        id: 'salida_porton', name: 'Camino al portón', rect: [0, 420, 90, 290],
+        id: 'chimenea', name: 'Chimenea alta', rect: [1000, 15, 75, 190],
+        look: [say('La chimenea más alta de la casa. No sale humo de ninguna otra, pero de esta sí. Siempre.')],
+      },
+      {
+        id: 'ventanas', name: 'Ventanas de la fachada', rect: [300, 280, 400, 260],
+        look: (s) => [say(byEra(s, 'Todas las ventanas de abajo tienen luz. Hay alguien en cada cuarto, o alguien quiere que parezca.', 'Las persianas están cerradas con tablas. Una sola tiene los vidrios enteros, y adentro está oscuro.'))],
+      },
+      {
+        id: 'sierras', name: 'Las sierras', rect: [0, 190, 180, 140],
+        look: [say('Detrás de los árboles, las sierras. Desde acá parecen más cerca que desde el pueblo.')],
+      },
+      {
+        id: 'salida_porton', name: 'Camino al portón', rect: [0, 560, 50, 160],
         exit: { to: 'entrada', at: [1380, 640] },
       },
       {
-        id: 'salida_invernadero', name: 'Sendero al invernadero', rect: [1830, 420, 90, 290],
+        id: 'salida_invernadero', name: 'Sendero al invernadero', rect: [1390, 560, 50, 160],
         exit: { to: 'invernadero', at: [190, 640] },
       },
     ],
@@ -156,7 +165,7 @@ export const ROOMS: Record<string, RoomDef> = {
       },
       {
         id: 'salida', name: 'Volver al jardín', rect: [0, 400, 80, 300],
-        exit: { to: 'jardin', at: [1740, 640] },
+        exit: { to: 'jardin', at: [1330, 680] },
       },
     ],
   },
@@ -175,7 +184,7 @@ export const ROOMS: Record<string, RoomDef> = {
     hotspots: [
       {
         id: 'puerta_calle', name: 'Puerta al jardín', rect: [40, 250, 130, 270],
-        exit: { to: 'jardin', at: [960, 610] },
+        exit: { to: 'jardin', at: [860, 650] },
       },
       {
         id: 'puerta_salon', name: 'Salón', rect: [300, 260, 120, 250], walk: [360, 600],

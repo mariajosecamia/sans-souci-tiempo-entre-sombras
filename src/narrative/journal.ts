@@ -53,7 +53,7 @@ export const OBJECTIVES: Objective[] = [
   { id: 'nicho', title: 'Buscar lo que la biblioteca esconde en el otro tiempo', active: (s) => flag(s, 'quinqueLit'), done: (s) => flag(s, 'tookDiary'),
     hints: ['En 1920 hay un tramo de estantería tapiado.', 'Con el quinqué encendido, mirá la biblioteca abandonada.', 'En la biblioteca, pasá al abandono con el quinqué y tomá el libro del nicho, a la izquierda.'] },
   { id: 'reloj', title: 'Abrir el reloj del hall', active: (s) => flag(s, 'tookDiary'), done: (s) => flag(s, 'clockOpen'),
-    hints: ['El diario dice a qué hora se detuvo todo. Pero las agujas están trabadas.', 'En el jardín, sobre la carretilla, hay una aceitera. La hora es las cuatro menos veinte.', 'Usá la aceitera en el reloj del hall y poné las agujas en las 3:40.'] },
+    hints: ['El diario dice a qué hora se detuvo todo. Pero las agujas están trabadas.', 'En el jardín, al pie de la escalinata, hay una aceitera. La hora es las cuatro menos veinte.', 'Usá la aceitera en el reloj del hall y poné las agujas en las 3:40.'] },
   { id: 'estudio', title: 'Entrar al estudio de Don Aurelio', active: (s) => flag(s, 'clockOpen'), done: (s) => flag(s, 'estudioOpen'),
     hints: ['La llave estaba dentro del reloj.', 'La puerta del estudio está en el hall, junto al reloj.', 'Usá la llave del estudio en la puerta con la placa de bronce.'] },
   { id: 'arriba', title: 'Subir al primer piso', active: (s) => flag(s, 'quinqueLit'), done: (s) => s.visited.includes('corredor'),

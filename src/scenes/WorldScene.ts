@@ -4,6 +4,7 @@ import { ROOMS } from '../data/rooms';
 import { ITEMS } from '../data/items';
 import type { Effect, GameState, Hotspot, RoomDef, Pt, Verb } from '../systems/types';
 import { applyEffect, newState } from '../systems/state';
+import { PAINTED, plateKey } from '../data/painted';
 import { interact, combine, inspectItem, visibleHotspots, hotspotName, verbsFor, eraOf, settleEra, eraToggleAvailable } from '../systems/logic';
 import { renderRoom, RenderedRoom } from '../art/render';
 import { buildSheet, buildSombra, buildCrow, ANIMS, FRAME_W, FRAME_H, FOOT_Y, Sheet } from '../art/sprites';
@@ -99,13 +100,27 @@ export class WorldScene extends Phaser.Scene {
     ic.fillStyle = '#111'; ic.beginPath(); ic.arc(5, 5, 4, 0, Math.PI * 2); ic.fill();
     this.textures.addCanvas('inkmote', ik);
     // velo de papel + viñeta (fijo en pantalla)
-    const [pv, pc] = makeCanvas(640, 360);
-    pc.fillStyle = '#fff'; pc.fillRect(0, 0, 640, 360);
-    for (let i = 0; i < 9000; i++) { pc.globalAlpha = Math.random() * 0.06; pc.fillStyle = Math.random() < 0.5 ? '#6b5a48' : '#d8c8a9'; pc.fillRect(Math.random() * 640, Math.random() * 360, 1, 1); }
+    const [pv, pc] = makeCanvas(1280, 720);
+    pc.fillStyle = '#fff'; pc.fillRect(0, 0, 1280, 720);
+    // grano de papel de acuarela (cold press): motas claras y oscuras
+    for (let i = 0; i < 60000; i++) { pc.globalAlpha = Math.random() * 0.07; pc.fillStyle = Math.random() < 0.55 ? '#6b5a48' : '#d8c8a9'; pc.fillRect(Math.random() * 1280, Math.random() * 720, 1 + Math.random() * 1.5, 1 + Math.random()); }
+    // fibras
+    pc.strokeStyle = '#7a6550'; pc.lineWidth = 0.7;
+    for (let i = 0; i < 900; i++) {
+      pc.globalAlpha = 0.04 + Math.random() * 0.05;
+      const x = Math.random() * 1280, y = Math.random() * 720, a = Math.random() * Math.PI * 2, l = 6 + Math.random() * 18;
+      pc.beginPath(); pc.moveTo(x, y); pc.quadraticCurveTo(x + Math.cos(a + 0.6) * l * 0.5, y + Math.sin(a + 0.6) * l * 0.5, x + Math.cos(a) * l, y + Math.sin(a) * l); pc.stroke();
+    }
+    // manchas suaves de pigmento irregular (el papel absorbe distinto)
+    for (let i = 0; i < 40; i++) { const x = Math.random() * 1280, y = Math.random() * 720, r0 = 60 + Math.random() * 200; const g = pc.createRadialGradient(x, y, 0, x, y, r0); g.addColorStop(0, 'rgba(120,100,80,0.05)'); g.addColorStop(1, 'rgba(120,100,80,0)'); pc.globalAlpha = 1; pc.fillStyle = g; pc.fillRect(x - r0, y - r0, r0 * 2, r0 * 2); }
     pc.globalAlpha = 1;
-    const vg = pc.createRadialGradient(320, 180, 120, 320, 180, 400);
+    const vg = pc.createRadialGradient(640, 360, 260, 640, 360, 800);
     vg.addColorStop(0, 'rgba(255,255,255,0)'); vg.addColorStop(1, 'rgba(60,45,35,.75)');
-    pc.fillStyle = vg; pc.fillRect(0, 0, 640, 360);
+    pc.fillStyle = vg; pc.fillRect(0, 0, 1280, 720);
+    // niebla baja para el abandono y el exterior
+    const [hz, hc] = makeCanvas(1024, 200);
+    for (let i = 0; i < 90; i++) { const x = Math.random() * 1024, y = 80 + Math.random() * 100, r0 = 40 + Math.random() * 110; const g = hc.createRadialGradient(x, y, 0, x, y, r0); g.addColorStop(0, 'rgba(255,255,255,0.10)'); g.addColorStop(1, 'rgba(255,255,255,0)'); hc.fillStyle = g; hc.fillRect(x - r0, y - r0, r0 * 2, r0 * 2); }
+    this.textures.addCanvas('haze', hz);
     this.textures.addCanvas('vignette', pv);
   }
 
@@ -216,7 +231,7 @@ export class WorldScene extends Phaser.Scene {
       const { tx, ty } = this.moving;
       const dx = tx - this.player.x, dy = ty - this.player.y;
       const d = Math.hypot(dx, dy);
-      const step = (SPEED * dt) / 1000;
+      const step = (SPEED * this.roomScale() * dt) / 1000;
       if (d <= step) {
         this.player.setPosition(tx, ty);
         const r = this.moving.resolve;
@@ -252,6 +267,7 @@ export class WorldScene extends Phaser.Scene {
     this.s.room = id;
     if (!this.s.visited.includes(id)) this.s.visited.push(id);
     settleEra(this.room, this.s);
+    await this.ensurePlates(id);
     this.drawRoom();
     const pos = at ?? this.s.pos ?? this.room.spawn;
     const [px, py] = clampToPoly(this.room.floor, pos);
@@ -275,9 +291,42 @@ export class WorldScene extends Phaser.Scene {
     this.texKeys = [];
   }
 
+  /** Carga (una sola vez) las ilustraciones pintadas de una sala. */
+  private ensurePlates(id: string): Promise<void> {
+    const plates = PAINTED[id];
+    if (!plates) return Promise.resolve();
+    const missing = (Object.entries(plates) as [Era, { src: string }][]).filter(([era]) => !this.textures.exists(plateKey(id, era)));
+    if (!missing.length) return Promise.resolve();
+    return new Promise((res) => {
+      for (const [era, pl] of missing) this.load.image(plateKey(id, era), pl.src);
+      this.load.once('complete', () => res());
+      this.load.once('loaderror', () => res());
+      this.load.start();
+    });
+  }
+
+  /** Escala del personaje en esta sala (las salas pintadas tienen su propia escala). */
+  private roomScale(): number { return (this.room?.scale?.[1] ?? 0.86) / 0.86; }
+
   drawRoom(): void {
     this.clearRoom();
     const era = eraOf(this.room, this.s);
+    const plate = PAINTED[this.room.id]?.[era];
+    if (plate && this.textures.exists(plateKey(this.room.id, era))) {
+      // ilustración pintada: cubre la sala; encima van sólo los efectos que unifican (aire, polvo, papel)
+      const img = this.add.image(plate.dx ?? 0, plate.dy ?? 0, plateKey(this.room.id, era)).setOrigin(0).setDepth(-20);
+      const src = img.texture.getSourceImage() as HTMLImageElement;
+      img.setScale(Math.max(this.room.width / src.width, 720 / src.height));
+      const vig = this.add.image(320, 180, 'vignette').setOrigin(0).setScrollFactor(0).setDisplaySize(1280, 720).setDepth(9800).setBlendMode(Phaser.BlendModes.MULTIPLY);
+      this.layerObjs.push(img, vig);
+      if (plate.ambient) {
+        const shade = this.add.rectangle(0, 0, this.room.width, 720, era === 'abandono' ? 0x7f8a80 : 0x7a6a5a, plate.ambient).setOrigin(0).setDepth(9000).setBlendMode(Phaser.BlendModes.MULTIPLY);
+        this.layerObjs.push(shade);
+      }
+      this.spawnActors(era);
+      this.spawnAtmosphere(era);
+      return;
+    }
     const R = renderRoom(this.room.id, era, this.s, this.room.width, 720, this.res);
     this.rendered = R;
     const key = `room-${Date.now()}`;
@@ -287,6 +336,14 @@ export class WorldScene extends Phaser.Scene {
     const back = this.add.image(0, 0, add('back', R.back)).setOrigin(0).setScale(inv).setDepth(-20);
     const dark = this.add.image(0, 0, add('dark', R.dark)).setOrigin(0).setScale(2).setDepth(9000).setBlendMode(Phaser.BlendModes.MULTIPLY);
     const front = this.add.image(0, 0, add('front', R.front)).setOrigin(0).setScale(inv).setDepth(9500);
+    // primerísimo plano: se mueve más rápido que la sala (profundidad)
+    const near = this.add.image(-0.125 * this.room.width, 0, add('near', R.near)).setOrigin(0).setScale(inv).setScrollFactor(1.25, 1).setDepth(9550);
+    this.layerObjs.push(near);
+    if (R.beams) {
+      const beams = this.add.image(0, 0, add('beams', R.beams)).setOrigin(0).setScale(2).setDepth(9050).setBlendMode(Phaser.BlendModes.SCREEN);
+      if (!this.opts.reduceMotion) this.tweens.add({ targets: beams, alpha: { from: 0.75, to: 1 }, duration: 4200, yoyo: true, repeat: -1, ease: 'Sine.inOut' });
+      this.layerObjs.push(beams);
+    }
     const vig = this.add.image(320, 180, 'vignette').setOrigin(0).setScrollFactor(0).setDisplaySize(1280, 720).setDepth(9800).setBlendMode(Phaser.BlendModes.MULTIPLY);
     this.layerObjs.push(far, back, dark, front, vig);
     // luces cálidas que titilan
@@ -324,7 +381,7 @@ export class WorldScene extends Phaser.Scene {
         }
         const anim = key === 'mercedes' ? 'sit' : 'idle';
         const sh = this.sheets[key];
-        const sp = this.add.sprite(x + w / 2, y + hh, key, 0).setOrigin(0.45, FOOT_Y / FRAME_H).setScale(1 / sh.res).setDepth(y + hh);
+        const sp = this.add.sprite(x + w / 2, y + hh, key, 0).setOrigin(0.45, FOOT_Y / FRAME_H).setScale(this.roomScale() / sh.res).setDepth(y + hh);
         sp.play(`${key}-${anim}`);
         sp.setFlipX(h.face === 'left' ? false : h.face === 'right');
         if (h.face === 'left') sp.setFlipX(false);
@@ -339,9 +396,13 @@ export class WorldScene extends Phaser.Scene {
       this.player = this.add.sprite(0, 0, 'elena', 0).setOrigin(0.45, FOOT_Y / FRAME_H).setScale(1 / this.sheets.elena.res);
       this.player.play('elena-idle');
     }
+    this.player.setScale(this.roomScale() / this.sheets.elena.res);
     this.player.setVisible(!this.titleMode);
     this.player.clearTint();
     if (era === 'sombras') this.player.setTint(0xcfc8bc);
+    // en las salas pintadas, los personajes toman la luz de la ilustración
+    const plateTint = PAINTED[this.room.id]?.[era]?.tint;
+    if (plateTint) { this.player.setTint(plateTint); for (const n of this.npcs) n.setTint(plateTint); }
   }
 
   private spawnAtmosphere(era: Era): void {
@@ -353,6 +414,15 @@ export class WorldScene extends Phaser.Scene {
         alpha: { min: 0.25, max: 0.6 }, rotate: 6,
       }).setDepth(9600);
       this.particles.push(rain);
+    }
+    // niebla baja que deriva
+    if (era === 'abandono' || this.room.outdoor || this.room.id === 'sotano') {
+      for (let i = 0; i < Math.ceil(W / 900) + 1; i++) {
+        const hz = this.add.image(i * 900 - 100, 720, 'haze').setOrigin(0, 1).setScale(1.1, 1).setDepth(9150).setAlpha(this.room.outdoor ? 0.5 : 0.38)
+          .setTint(era === 'abandono' ? 0xc8d0b8 : 0xe8e0d0);
+        this.tweens.add({ targets: hz, x: hz.x + 140, duration: 16000 + i * 3000, yoyo: true, repeat: -1, ease: 'Sine.inOut' });
+        this.particles.push(hz as any);
+      }
     }
     // polvo suspendido en la luz
     const motes = this.add.particles(0, 0, era === 'sombras' ? 'inkmote' : 'mote', {
@@ -585,7 +655,7 @@ export class WorldScene extends Phaser.Scene {
     this.s = newState();
     this.s.era = '1920';
     this.cameras.main.stopFollow();
-    await this.loadRoom('jardin', [960, 640], false);
+    await this.loadRoom('jardin', [720, 680], false);
     this.cameras.main.setScroll(320, 0);
     this.tweens.add({ targets: this.cameras.main, scrollX: 420, duration: 30000, yoyo: true, repeat: -1, ease: 'Sine.inOut' });
     this.cameras.main.fadeIn(1200);
