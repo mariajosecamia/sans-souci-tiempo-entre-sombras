@@ -1,0 +1,22 @@
+{
+  "name": "sans-souci-tiempo-entre-sombras",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Sans Souci: El tiempo entre las sombras — aventura gráfica 2D point-and-click",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc --noEmit && vite build",
+    "preview": "vite preview",
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "phaser": "3.80.1"
+  },
+  "devDependencies": {
+    "typescript": "5.6.3",
+    "vite": "5.4.10",
+    "vitest": "2.1.4"
+  }
+}
