@@ -34,7 +34,7 @@ export const OVERLAY_PROPS = new Set(['fragmento', 'aceitera', 'lata', 'reflejo'
 
 export const PAINTED: Record<string, Partial<Record<Era, Plate>>> = {
   jardin: {
-    '1920': { src: 'art/jardin-1920.webp', sky: true, veg: true, tint: 0xdcc4a0, fx: [{ k: 'fountain', tiers: [[170, 232, 373], [152, 250, 418], [128, 272, 476]], pool: [100, 300, 538, 14], flow: 'full' }] },
+    '1920': { src: 'art/jardin-1920.webp', sky: true, veg: true, tint: 0xbdb6ac, fx: [{ k: 'fountain', tiers: [[170, 232, 373], [152, 250, 418], [128, 272, 476]], pool: [100, 300, 538, 14], flow: 'full' }] },
     abandono: { src: 'art/jardin-abandono.webp', sky: true, veg: true, tint: 0xb8b4a0, fx: [{ k: 'fountain', tiers: [[170, 232, 373], [152, 250, 418], [128, 272, 476]], pool: [100, 300, 538, 14], flow: 'drip' }] },
     sombras: { src: 'art/jardin-sombras.webp', sky: true, veg: true, tint: 0xd8d4cc },
   },
@@ -64,7 +64,7 @@ export const PAINTED: Record<string, Partial<Record<Era, Plate>>> = {
 
 PAINTED.invernadero = {
   '1920': {
-    src: 'art/invernadero-1920.webp', tint: 0xe6c49c,
+    src: 'art/invernadero-1920.webp', tint: 0xcdbba4,
     inPaint: { querosen: { patch: 'art/invernadero-1920-sinlata.webp', x: 976, y: 505 } },
     fx: [{ k: 'window', x: 300, y: 95, w: 560, h: 320 }, { k: 'window', x: 860, y: 95, w: 150, h: 180 },
       { k: 'plants', x: 205, y: 0, w: 420, h: 330 }, { k: 'plants', x: 1000, y: 0, w: 279, h: 470 }, { k: 'plants', x: 860, y: 70, w: 190, h: 170 },
