@@ -184,6 +184,13 @@ export class WorldScene extends Phaser.Scene {
     dg.addColorStop(0, 'rgba(255,250,235,1)'); dg.addColorStop(1, 'rgba(255,250,235,0)');
     dc.fillStyle = dg; dc.fillRect(0, 0, 8, 8);
     this.textures.addCanvas('mote', d);
+    // sombra de contacto bajo los pies: una mancha blanda, como una aguada, que asienta a los personajes en el piso
+    const [fs, fc] = makeCanvas(128, 32);
+    fc.save(); fc.scale(1, 0.25);
+    const fg = fc.createRadialGradient(64, 64, 0, 64, 64, 64);
+    fg.addColorStop(0, 'rgba(28,18,10,0.85)'); fg.addColorStop(0.55, 'rgba(28,18,10,0.4)'); fg.addColorStop(1, 'rgba(28,18,10,0)');
+    fc.fillStyle = fg; fc.fillRect(0, 0, 128, 128); fc.restore();
+    this.textures.addCanvas('footshadow', fs);
     const [r, rc] = makeCanvas(2, 24);
     rc.fillStyle = 'rgba(230,228,215,.55)'; rc.fillRect(0, 0, 1, 24);
     this.textures.addCanvas('raindrop', r);
@@ -369,6 +376,7 @@ export class WorldScene extends Phaser.Scene {
       c.spr.x -= (c.speed * dt) / 1000;
       if (c.spr.x < -c.spr.displayWidth / 2) c.spr.x = this.room.width + c.spr.displayWidth / 2;
     }
+    this.updateShadows();
     if (!this.player || this.titleMode) return;
     if (this.moving) {
       const { tx, ty } = this.moving;
@@ -702,6 +710,7 @@ export class WorldScene extends Phaser.Scene {
         sp.setData('ink', era === 'sombras' ? (h.npc === 'rosa_ink' ? 'dark' : h.npc === 'isabel' ? 'pale' : 'ink') : null);
         sp.setData('who', key).setData('hid', h.id);
         if (h.npc !== 'rosa_ink') this.breathe(sp);
+        if (!at && h.npc !== 'isabel') this.footShadow(sp);
         this.npcs.push(sp);
       }
     }
@@ -710,6 +719,7 @@ export class WorldScene extends Phaser.Scene {
         ? this.add.sprite(0, 0, 'elena-p', 0).setOrigin(0.5, ELENA_FOOT)
         : this.add.sprite(0, 0, 'elena', 0).setOrigin(0.45, FOOT_Y / FRAME_H);
       this.player.play('elena-idle');
+      this.footShadow(this.player);
     }
     this.player.setScale(this.playerScale());
     this.player.setVisible(!this.titleMode);
@@ -719,8 +729,27 @@ export class WorldScene extends Phaser.Scene {
     const plateTint = PAINTED[this.room.id]?.[era]?.tint;
     if (plateTint) { this.player.setTint(plateTint); for (const n of this.npcs) n.setTint(plateTint); }
     // en el tiempo de las sombras todo es papel y tinta: también los personajes (Elena conserva un resto de color)
-    this.inkify(this.player, era === 'sombras' ? 'elena' : null);
-    for (const n of this.npcs) if (n.texture.key !== 'sombra') this.inkify(n, n.getData('ink'));
+    // en el abandono la luz es gris y húmeda: los personajes pierden un poco de color para no verse recortados
+    this.inkify(this.player, era === 'sombras' ? 'elena' : era === 'abandono' ? 'dim' : null);
+    for (const n of this.npcs) if (n.texture.key !== 'sombra') this.inkify(n, n.getData('ink') ?? (era === 'abandono' ? 'dim' : null));
+  }
+
+  /** Sombras de contacto: siguen a cada personaje y se van con él. */
+  private shadows = new Map<Phaser.GameObjects.Sprite, Phaser.GameObjects.Image>();
+  private footShadow(sp: Phaser.GameObjects.Sprite, base = 0.42): void {
+    if (this.shadows.has(sp)) return;
+    const sh = this.add.image(sp.x, sp.y, 'footshadow').setOrigin(0.5, 0.5).setBlendMode(Phaser.BlendModes.MULTIPLY);
+    sh.setData('base', base);
+    this.shadows.set(sp, sh);
+  }
+  private updateShadows(): void {
+    for (const [sp, sh] of this.shadows) {
+      if (!sp.active) { sh.destroy(); this.shadows.delete(sp); continue; }
+      const H = sp.displayHeight * 0.92;
+      const outdoor = !!this.room?.outdoor;
+      sh.setPosition(sp.x, sp.y - H * 0.006).setDisplaySize(H * 0.42, H * 0.075).setDepth(sp.depth - 1)
+        .setVisible(sp.visible).setAlpha(sp.alpha * (sh.getData('base') as number) * (outdoor ? 0.8 : 1));
+    }
   }
 
   /** Respira: el pecho sube y baja apenas, y cada tanto cambia el peso de pierna. */
@@ -776,8 +805,9 @@ export class WorldScene extends Phaser.Scene {
   }
 
   /** Pasa un personaje a tinta sepia sobre papel (sólo WebGL). */
-  private inkify(sp: Phaser.GameObjects.Sprite, kind: 'elena' | 'ink' | 'dark' | 'pale' | null): void {
+  private inkify(sp: Phaser.GameObjects.Sprite, kind: 'elena' | 'ink' | 'dark' | 'pale' | 'dim' | null): void {
     if (!sp.preFX) {
+      if (kind === 'dim') return;
       if (kind === 'dark') sp.setTint(0x4a453e);
       else if (kind) sp.setTint(0xa8a298);
       return;
@@ -785,6 +815,7 @@ export class WorldScene extends Phaser.Scene {
     sp.preFX.clear();
     if (!kind) return;
     const cm = sp.preFX.addColorMatrix();
+    if (kind === 'dim') { cm.saturate(-0.38); return; }
     if (kind === 'elena') { cm.saturate(-0.7); cm.sepia(true); cm.contrast(0.08, true); return; }
     cm.grayscale(1); cm.sepia(true); cm.contrast(0.18, true);
     if (kind === 'dark') { cm.brightness(0.45, true); cm.contrast(0.35, true); }
@@ -968,7 +999,7 @@ export class WorldScene extends Phaser.Scene {
         // Anselmo mira hacia Elena y el farol cuelga de su mano, con un vaivén leve
         const toRight = this.player.x > 1050;
         const sp = this.npcSprite('anselmo', 1050, 600, toRight ? 'right' : 'left').setDepth(560).setAlpha(0); this.breathe(sp);
-        this.temp.push(sp);
+        this.temp.push(sp); this.footShadow(sp);
         const H = this.elenaH(600), k = sp.scaleY * 0.75, dir = toRight ? 1 : -1;
         const hx = 1050 + dir * 71 * k, hy = 600 - 272 * k;
         const farol = this.add.image(hx, hy, 'obj-farol').setOrigin(0.5, 14 / 256).setScale((0.2 * H) / 232).setDepth(561).setAlpha(0);
